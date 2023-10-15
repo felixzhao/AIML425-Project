@@ -33,24 +33,121 @@ Face Detection is a very popular research topic and have various applications in
 Nerual Network plays key role in this work, lots of Face Detection Nerual Networks has been introduced.
 RetinaFace is one of most populars implementation, which is been introduced in 2019, 
 and be accepted by "Conference on Computer Vision and Pattern Recognition (CVPR)" in 2020.
-In this study, I will show my understanding of this work based on this paper \cite{deng2020retinaface}
+In this study, I will show my understanding of this work based on this paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}
 In real world, lots of edge case can not be covered by this pretrained model.
 Retrain whole model cost too much.
 Fine tuning model approach will be introduced in this study.
 
 
-\section{THEORY}
-\label{sec:theory}
+\section{Content Analysis}
+\label{sec:content}
+
+In paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}, 
+Author introduced an approach which is a  novel pixel-wise face localization method based on a single-stage design call RetinaFace. 
+The method employs a multi-task learning strategy to simultaneously predict various attributes related to a face. 
 
 \subsection{RetinaNet}
 
+RetinaNet is a single-stage object detector that introduced the Focal Loss to address the class imbalance problem inherent in object detection tasks. The name "RetinaNet" is derived from its use of a feature pyramid network (FPN) to detect objects at different scales, similar to the multi-scale processing in the human retina.
+
+The architecture and features of RetinaNet are:
+
+\begin{enumerate}
+  \item Single-stage vs. Two-stage Detectors:
+  \begin{itemize}
+    \item Before RetinaNet, there were primarily two categories of object detectors: single-stage detectors (like YOLO and SSD) that are fast but less accurate, and two-stage detectors (like Faster R-CNN) that are more accurate but slower.
+
+    \item RetinaNet was designed as a single-stage detector but aimed to achieve the accuracy levels of two-stage detectors.
+  \end{itemize}
+  \item Feature Pyramid Network (FPN):
+
+  \begin{itemize}
+    \item RetinaNet incorporates the Feature Pyramid Network (FPN) to efficiently detect objects at different scales.
+    \item FPN constructs a multi-scale pyramid of feature maps by combining low-resolution, semantically strong features with high-resolution, semantically weak features using a top-down pathway and lateral connections.
+    \item This multi-scale representation is crucial for detecting objects of varying sizes in images.
+  \end{itemize}
+  \item Focal Loss:
+  \begin{itemize}
+  \item One of the main challenges with single-stage detectors is the class imbalance between foreground (object) and background classes. Since these detectors densely sample possible object locations in an image, there are many more negative samples (background) than positive samples (objects).
+  \item RetinaNet introduced the Focal Loss to address this imbalance. The Focal Loss is designed to down-weight the contribution of easy negatives (background samples that are easily classified as background) and focus more on the hard negatives and positives.
+  \item This dynamic scaling of the loss helps in training the model more effectively on challenging samples.
+\end{itemize}
+  \item Anchor Boxes:
+  \begin{itemize}
+    \item Like many object detectors, RetinaNet uses anchor boxes (pre-defined bounding boxes) at each spatial location in its feature maps to predict object locations.
+    \item Multiple anchor boxes with different scales and aspect ratios are used at each location to cater to objects of different shapes and sizes.
+\end{itemize}
+  \item Classification and Regression Heads:
+  \begin{itemize}
+    \item For each anchor box, RetinaNet has a classification head that determines the object class (or background) and a regression head that refines the bounding box coordinates.
+    \item These heads are shared across all the scales in the FPN, ensuring consistent predictions across different object sizes.
+\end{itemize}
+  \item Backbone Network:
+
+  \begin{itemize}
+    \item RetinaNet typically uses a deep convolutional network, like ResNet, as its backbone to extract feature maps from the input image. These feature maps then feed into the FPN.
+  \end{itemize}
+\end{enumerate}
+
 \subsection{feature pyramid network (FPN)}
+
+In traditional computer vision, pyramids were used to process images at multiple scales to detect objects of varying sizes.
+Deep convolutional neural networks (CNNs) inherently produce feature maps at different resolutions, with shallow layers capturing high-resolution but semantically weak features and deep layers capturing low-resolution but semantically strong features.
+FPN aims to leverage these multi-scale features effectively for object detection.
+
+It consists of the following parts.
+
+\begin{enumerate}
+  \item Bottom-up Pathway:
+  
+    This is the standard forward pass in a CNN. As you go deeper into the network, the spatial resolution of the feature maps decreases, but the semantic information increases.
+
+  \item Top-down Pathway and Lateral Connections:
+  
+    - FPN introduces a top-down pathway where the spatial resolution is upsampled.
+
+    - During this upsampling, FPN also adds lateral connections from the bottom-up pathway. These lateral connections are feature maps from the same level in the bottom-up pathway, which are merged with the upsampled features.
+    
+    - This merging process combines high-level semantic information from the top-down pathway with detailed spatial information from the bottom-up pathway.
+  
+  \item Multi-scale Predictions:
+    
+    With the combined features at different levels of the pyramid, FPN can make predictions at multiple scales. This allows for the detection of objects of varying sizes with high accuracy.
+
+  \item Benefits:
+  
+    - Improved Detection Across Scales: Traditional CNNs often struggled with detecting small objects because the feature maps in deeper layers, which have strong semantic information, are of low resolution. FPN addresses this by combining low-resolution, semantically strong features with high-resolution, semantically weak features.
+
+    - Efficiency: Instead of processing the image at multiple scales separately, FPN efficiently constructs a feature pyramid from a single-scale image, reducing computational overhead.
+
+  \item Usage in Modern Architectures:
+  
+    FPN has become a foundational component in many state-of-the-art object detection architectures, including RetinaNet. By providing multi-scale feature representations, it enhances the detector's ability to recognize objects of various sizes.
+
+\end{enumerate}
+
+Feature Pyramid Network (FPN) is a pivotal advancement in object detection, addressing the challenge of detecting objects across different scales. By integrating multi-scale feature representations in a unified architecture, FPN enhances both the accuracy and efficiency of object detectors.
+
+
+\subsection{Anchor based Face Deteciton on pyramid network}
+
+In RetinaFace, the anchors are indeed densely tiled across the feature maps of each pyramid level, such as P2. However, the anchors don't predict for every single pixel in the sense of moving pixel by pixel. Instead, they are associated with the spatial locations on the feature map, and their density is determined by the stride of that particular pyramid level.
+
+Let's break this down:
+
+\begin{enumerate}
+  \item Stride: Each pyramid level has an associated stride, which indicates the spatial resolution difference between the original image and the feature map at that level. For instance, if P2 has a stride of 4, it means each spatial location in the P2 feature map corresponds to a 4x4 region in the original image.
+  \item Anchor Tiling: For each spatial location on a feature map (e.g., P2), multiple anchors of different scales and aspect ratios are tiled. So, if you're at a specific x,y location on P2, there will be multiple anchors centered at that location, each with a different size or shape.
+  \item Dense Sampling: While the anchors are densely sampled, they aren't associated with every pixel of the original image. Instead, they are associated with the spatial locations of the feature map. Using the P2 example with a stride of 4: for the first spatial location (top-left), the anchors might be centered at pixel (2,2) of the original image (assuming the anchor's center is at the middle of the 4x4 region). The next set of anchors on P2 would be centered at pixel (6,2), and so on.
+  \item Coverage: Even though the anchors aren't predicting for every single pixel, the combination of multiple scales and aspect ratios ensures that they can potentially cover all objects (faces, in the case of RetinaFace) in the image. The dense tiling, combined with the varying sizes and shapes of the anchors, allows the model to detect faces of different sizes and orientations.
+\end{enumerate}
+In summary, while RetinaFace does densely tile anchors across the feature maps of each pyramid level, it doesn't predict for every pixel in a pixel-by-pixel manner. Instead, the predictions are made for spatial locations on the feature map, with the density determined by the stride of the pyramid level.
 
 \subsection{Context Modelling}
 
 \subsection{Multi-task Loss}
 
-\subsection{Anchor}
+
 
 \subsection{mAP}
 
