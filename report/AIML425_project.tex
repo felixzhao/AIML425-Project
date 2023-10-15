@@ -204,6 +204,27 @@ In summary, while RetinaFace does densely tile anchors across the feature maps o
 
 \subsection{Context Module in RetinaFace}
 
+The "context module" is a significant component of the RetinaFace architecture.
+
+The context module in RetinaFace is designed to capture contextual information from different feature levels. In many face detection architectures, multi-level feature fusion is a common strategy to handle faces of various sizes and in different scenarios. The context module in RetinaFace aims to enhance the feature representation by aggregating context from different scales.
+
+\begin{enumerate}
+  \item Multi-level Feature Aggregation: The context module takes features from different levels of the network. These features come from various resolutions, capturing both high-level and low-level details.
+  \item Feature Enhancement: By aggregating these multi-level features, the context module can enhance the representation of each feature level. This is particularly useful for detecting small faces or faces in challenging scenarios where contextual information can provide additional clues.
+  \item Improved Detection Performance: The inclusion of the context module in RetinaFace helps in achieving better detection performance, especially in scenarios where faces are partially occluded, are of varying sizes, or are in challenging lighting conditions.
+\end{enumerate}
+
+In essence, the context module serves as a mechanism to integrate and leverage information from different scales, enhancing the robustness and accuracy of the RetinaFace detector in diverse real-world scenarios.
+
+\subsubsection{How Context Module works with FPN}
+
+\begin{enumerate}
+  \item Feature Aggregation: The context module takes the multi-scale features provided by the FPN and further refines them by aggregating context. This can be thought of as a two-step enhancement: first, the FPN provides features at multiple scales, and then the context module refines these features by considering broader contextual information.
+  \item Improved Detection: By combining the strengths of FPN and the context module, RetinaFace achieves a richer feature representation. This enhanced representation is more robust and versatile, allowing the model to detect faces with higher accuracy, especially in challenging scenarios.
+\end{enumerate}
+
+In summary, while the FPN in RetinaFace provides a multi-scale feature representation, the context module further refines these features by aggregating contextual information. The combination of these two components results in a powerful and robust face detection mechanism.
+
 \subsection{Multi-task Loss}
 
 The multi-task loss in the RetinaFace paper is designed to handle multiple objectives simultaneously, including face classification, bounding box regression, facial landmark regression, and dense regression.
