@@ -202,11 +202,54 @@ Let's break this down:
 \end{enumerate}
 In summary, while RetinaFace does densely tile anchors across the feature maps of each pyramid level, it doesn't predict for every pixel in a pixel-by-pixel manner. Instead, the predictions are made for spatial locations on the feature map, with the density determined by the stride of the pyramid level.
 
-\subsection{Context Modelling}
+\subsection{Context Module in RetinaFace}
 
 \subsection{Multi-task Loss}
 
+The multi-task loss in the RetinaFace paper is designed to handle multiple objectives simultaneously, including face classification, bounding box regression, facial landmark regression, and dense regression.
 
+\[ L = L_{cls}(p_i, p^*i) + \lambda_1 1{p^i} L*{box}(t_i, t^*i) \]
+\[+ \lambda_2 1{p^i} L*{pts}(l_i, l^*i) + \lambda_3 1{p^i} L*{pixel} \]
+
+Where:
+
+\begin{itemize}
+\item \( 1_{p^*_i} \) is an indicator function that is 1 for positive anchors and 0 otherwise.
+\item \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters.
+\end{itemize}
+
+In the RetinaFace paper, the loss-balancing parameters \( \lambda_1, \lambda_2, \lambda_3 \) are set to 0.25, 0.1, and 0.01, respectively. This means that the model places a higher significance on better box and landmark locations derived from supervision signals.
+
+Now, breakdown this formla.
+
+\begin{enumerate}
+  \item Face Classification Loss (\(L_{cls}\)):
+  \begin{itemize}
+    \item This loss is responsible for determining whether a given anchor is a face or not.
+    \item \( p_i \) is the predicted probability of anchor \( i \) being a face.
+    \item \( p^*_i \) is the ground truth, where it's 1 for a positive anchor (face) and 0 for a negative anchor (non-face).
+    \item The classification loss \( L_{cls} \) uses the softmax loss for binary classes (face/not face).
+  \end{itemize}
+    \item Face Box Regression Loss (\(L_{box}\)):
+    \begin{itemize}
+      \item This loss refines the bounding box coordinates for detected faces.
+      \item \( t_i = \{t_{x}, t_{y}, t_{w}, t_{h}\} \) represents the coordinates of the predicted box.
+      \item \( t^*_i = \{t^{x}, t^{y}, t^*_{w}, t^*_{h}\} \) represents the ground truth box coordinates associated with a positive anchor.
+      \item The regression targets (i.e., center location, width, and height) are normalized, and the loss \( L_{box} \) uses the smooth-L1 loss as defined in the Fast R-CNN paper.
+    \end{itemize}
+    \item Facial Landmark Regression Loss (\(L_{pts}\)):
+    \begin{itemize}
+      \item This loss predicts the locations of five facial landmarks.
+      \item \( l_i = \{l_{x1}, l_{y1}, ..., l_{x5}, l_{y5}\} \) represents the predicted five facial landmarks.
+      \item \( l^*_i = \{l^{x1}, l^{y1}, ..., l^*_{x5}, l^*_{y5}\} \) represents the ground truth landmarks associated with a positive anchor.
+    \item Similar to the box center regression, the facial landmark regression also employs target normalization based on the anchor center.
+    \end{itemize}
+    \item Dense Regression Loss (\(L_{pixel}\)):
+    \begin{itemize}
+      \item This loss is related to the dense regression branch of the model, which is designed to provide dense facial landmarks.
+      \item The specifics of this loss are further detailed in the paper, especially in relation to the mesh decoder.
+    \end{itemize}
+  \end{enumerate}
 
 \subsection{mAP}
 
