@@ -225,6 +225,13 @@ In essence, the context module serves as a mechanism to integrate and leverage i
 
 In summary, while the FPN in RetinaFace provides a multi-scale feature representation, the context module further refines these features by aggregating contextual information. The combination of these two components results in a powerful and robust face detection mechanism.
 
+
+\subsection{Cascade Regression}
+
+Cascade regression refers to a series of regression operations performed in a cascaded manner. In the context of object detection (or face detection, in the case of RetinaFace), this often means refining the bounding box predictions in a step-by-step manner. Instead of predicting the final bounding box coordinates in one go, the model makes an initial prediction and then refines it in subsequent steps.
+
+The idea behind cascade regression is that iterative refinement can lead to more accurate and stable bounding box predictions, especially in challenging scenarios.
+
 \subsection{Multi-task Loss}
 
 The multi-task loss in the RetinaFace paper is designed to handle multiple objectives simultaneously, including face classification, bounding box regression, facial landmark regression, and dense regression.
@@ -272,8 +279,15 @@ Now, breakdown this formla.
     \end{itemize}
   \end{enumerate}
 
-\subsection{mAP}
+\subsection{Cascade Regression with Multi-task Loss}
 
+\begin{enumerate}
+\item Iterative Bounding Box Refinement: Within the RetinaFace framework, cascade regression is applied to the bounding box regression task. The model first predicts an initial bounding box. This prediction is then refined in subsequent stages, each time getting closer to the ground truth.
+\item Joint Optimization: While the bounding box predictions are being refined through cascade regression, the model still jointly optimizes the other tasks (face classification and landmark localization) using the multi-task loss. This ensures that all tasks benefit from the iterative refinement process.
+\item Improved Accuracy: The combination of cascade regression and multi-task loss means that the model can achieve more accurate bounding box predictions without compromising the performance of the other tasks. The iterative refinement process allows the model to correct any initial inaccuracies in the bounding box predictions, leading to better overall detection performance.
+\end{enumerate}
+
+In essence, by combining cascade regression with a multi-task loss, RetinaFace ensures that the bounding box predictions are iteratively refined, leading to more accurate and stable face detections. This iterative refinement process works in tandem with the other tasks, ensuring that the overall performance of the model is optimized.
 
 \section{RESULTS}
 \label{sec:results}
