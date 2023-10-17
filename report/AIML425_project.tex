@@ -302,6 +302,56 @@ The adaptability of RetinaFace is showcased by its application in various unique
 \subsection{Optimization for Real-time Applications}
 The need for real-time face detection, especially in resource-constrained environments, has driven researchers to optimize RetinaFace for speed and efficiency. A notable contribution in this domain is the work by \cite{putro2022faster}, titled "A Faster Real-time Face Detector Support Smart Digital Advertising on Low-cost Computing Device." This research underscores the importance of efficient face detection in the realm of digital advertising, particularly on low-cost computing devices, further emphasizing the adaptability and potential of the RetinaFace model for real-world applications.
 
+\section{Fine tuning pretrained model}
+
+Fine-tuning a pretrained face detection model involves adapting a model that has been trained on a large dataset to a new, typically smaller, dataset. 
+This can be useful when we have a specific dataset or use-case in mind that might differ from the original training data. 
+
+There are three potential approach can be used to fine-tuning the pretrained model,
+which are fine-tuning hypter-parameters, fine-tuning by freeze early layers and fine-tuning with different anchors.
+
+\subsection{Fine-tuning hypter-parameters}
+
+
+\subsection{Fine-tuning with Frozen Early Layers}
+
+Fine-tuning pretrained models on novel datasets is a prevalent strategy in deep learning, offering a balance between leveraging pre-existing knowledge and adapting to new data. A common approach during this process is to freeze the early layers of the model, allowing only the deeper layers to be updated. This section delves into the rationale behind this approach and its implications for model performance.
+
+\subsubsection{Rationale for Freezing Early Layers}
+
+\begin{enumerate}
+\item Transfer of Generic Features: Deep neural networks, particularly convolutional architectures, have a hierarchical feature extraction process. The initial layers often capture universal, low-level features such as edges, textures, and colors. These foundational features are generally applicable across diverse datasets, making them valuable for transfer learning.
+
+\item Mitigation of Overfitting: Fine-tuning all layers with a small novel dataset can lead to overfitting, where the model becomes overly specialized to the training data. By freezing the early layers, the number of trainable parameters is reduced, thus decreasing the model's capacity to overfit.
+
+\item Computational Efficiency: Training fewer parameters can expedite the convergence of the model, leading to faster training epochs and potentially requiring fewer epochs to achieve optimal performance on the new dataset.
+\end{enumerate}
+
+\subsubsection{Why Freezing Early Layers Works?}
+\begin{enumerate}
+  \item Hierarchical Feature Learning: 
+  
+  As data progresses through the layers of a neural network, features transition from being generic to specific. 
+
+Early layers often act as filters detecting fundamental patterns, while deeper layers combine these patterns to recognize more complex structures. 
+When transferring to a new task, the basic patterns remain largely consistent, while the higher-level representations require adjustments to cater to the specifics of the new data.
+
+\item Regularization Effect: 
+
+By not allowing early layers to change, the model is implicitly regularized. This constraint can be viewed as a form of structural regularization, where certain parts of the model are kept constant, guiding the learning process in the deeper layers and preventing them from fitting to noise in the new dataset.
+
+\item Data-driven Adaptation: 
+
+While the early layers remain fixed, the deeper layers, which are more adaptable and data-specific, undergo training. This ensures that the model retains its generalization capability from the pretraining phase while fine-tuning based on the nuances of the new dataset.
+\end{enumerate}
+
+Freezing the early layers during fine-tuning strikes a balance between leveraging pre-existing, generic features and adapting to novel data characteristics. This approach, rooted in the hierarchical nature of feature extraction in deep networks, offers a computationally efficient and effective method for transfer learning across diverse tasks. Future research might explore adaptive freezing strategies, where the decision to freeze or train layers is data-driven, further optimizing the fine-tuning process.
+
+
+\subsection{Fine-tuning with different anchors}
+
+
+
 \section{RESULTS}
 \label{sec:results}
 
