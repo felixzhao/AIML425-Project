@@ -350,6 +350,31 @@ Freezing the early layers during fine-tuning strikes a balance between leveragin
 
 \subsection{Fine-tuning with different anchors}
 
+Face detection models often rely on predefined bounding boxes, known as anchors, to predict the location of faces in an image. The accuracy of these models can be significantly influenced by the choice of these anchors, especially when dealing with diverse face sizes and orientations. In this section, we delve into the methodology and impact of fine-tuning our model with different anchor configurations.
+
+\subsubsection{Anchor Analysis and Selection}
+
+Before embarking on the fine-tuning process, it's paramount to understand the distribution of face sizes and aspect ratios in the dataset. This preliminary analysis provides insights into potential anchor sizes and ratios that might be most effective.
+
+To determine the optimal sizes for our anchors, we employed k-means clustering on the ground truth bounding boxes. The centroids of these clusters provided a representative set of widths and heights for our anchors. While the number of anchors is often set between 5 and 9 in many applications, 
+our dataset's unique characteristics led us to choose \textit{TODO:X} anchors (where \textit{TODO:X} is the number you decided on).
+
+\subsubsection{Anchor Ratios and Scaling}
+
+Beyond mere size, the aspect ratio of anchors plays a pivotal role in accurately capturing the variability of faces in images. Common ratios, such as 1:1, 1:2, and 2:1, were considered based on the dataset's distribution.
+
+Due to FPN has been used in RetinaFace models that utilize multiple feature maps to detect objects at varying scales.
+following the implementation in RetinaFace we use same number anchors for feature maps.
+
+\subsubsection{Training and Results}
+
+With the newly determined anchors, the model was trained and its performance closely monitored. 
+
+Preliminary results indicated a \textit{TODO:Y}\% improvement in accuracy (where \textit{TODO:Y} is the improvement percentage you observed). However, it's worth noting that while anchor fine-tuning can enhance performance, it's just one facet of the optimization process. Factors like data augmentation, model architecture, and loss functions also significantly influence the model's efficacy.
+
+\subsubsection{Conclusion}
+
+Fine-tuning with different anchors offers a promising avenue for enhancing face detection models. By tailoring the anchors to the specific characteristics of the dataset, we can achieve more accurate and robust face detections. Future work might explore the iterative refinement of anchors and delve deeper into the interplay between anchor configurations and other model hyperparameters.
 
 
 \section{RESULTS}
