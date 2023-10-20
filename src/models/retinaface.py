@@ -110,6 +110,10 @@ class RetinaFace(nn.Module):
             set_requires_grad(self.BboxHead)
             set_requires_grad(self.LandmarkHead)
 
+            # Unfreeze MobileNetV1 stage3
+            if hasattr(self, 'backbone'):
+                set_requires_grad(self.backbone.stage3)
+
     def _make_class_head(self,fpn_num=3,inchannels=64,anchor_num=2):
         classhead = nn.ModuleList()
         for i in range(fpn_num):
