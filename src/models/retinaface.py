@@ -54,6 +54,7 @@ class RetinaFace(nn.Module):
         super(RetinaFace,self).__init__()
         self.phase = phase
         backbone = None
+        is_restnet50 = False
         if cfg['name'] == 'mobilenet0.25':
             backbone = MobileNetV1()
             if cfg['pretrain']:
@@ -68,6 +69,7 @@ class RetinaFace(nn.Module):
         elif cfg['name'] == 'Resnet50':
             import torchvision.models as models
             backbone = models.resnet50(pretrained=cfg['pretrain'])
+            is_restnet50 = True
 
         self.body = _utils.IntermediateLayerGetter(backbone, cfg['return_layers'])
         in_channels_stage2 = cfg['in_channel']
@@ -85,6 +87,33 @@ class RetinaFace(nn.Module):
         self.ClassHead = self._make_class_head(fpn_num=3, inchannels=cfg['out_channel'])
         self.BboxHead = self._make_bbox_head(fpn_num=3, inchannels=cfg['out_channel'])
         self.LandmarkHead = self._make_landmark_head(fpn_num=3, inchannels=cfg['out_channel'])
+
+        # Freeze layers if in training phase
+        if self.phase == 'train':
+            self.freeze_early_layers(is_restnet50=is_restnet50)
+            self.freeze_ssh_and_fpn()
+
+
+    def freeze_early_layers(self, is_restnet50 = False):
+        # Freeze early layers of MobileNetV1
+        for param in self.body.stage1.parameters():
+            param.requires_grad = False
+
+        # Freeze early layers of ResNet50 (if used)
+        if is_restnet50:
+            for name, param in self.body.named_parameters():
+                if 'layer1' in name or 'layer2' in name:
+                    param.requires_grad = False
+
+    def freeze_ssh_and_fpn(self):
+        # Freeze SSH layers
+        for ssh in [self.ssh1, self.ssh2, self.ssh3]:
+            for param in ssh.parameters():
+                param.requires_grad = False
+
+        # Freeze FPN layers
+        for param in self.fpn.parameters():
+            param.requires_grad = False
 
     def _make_class_head(self,fpn_num=3,inchannels=64,anchor_num=2):
         classhead = nn.ModuleList()
