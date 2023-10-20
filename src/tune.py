@@ -74,6 +74,7 @@ elif args.pretrained_model:
     print('Loading pre-trained weights from:', args.pretrained_model)
     state_dict = torch.load("./weights/base_model.pth")
     # Adjust the keys if necessary (similar to the resume_net loading mechanism)
+    from collections import OrderedDict
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
         head = k[:7]
