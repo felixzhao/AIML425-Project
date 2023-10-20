@@ -115,7 +115,7 @@ def get_preds(pred_dir):
             imgname, _boxes = read_pred_file(os.path.join(event_dir, imgtxt))
             current_event[imgname.rstrip('.jpg')] = _boxes
         boxes[event] = current_event
-    return boxes
+    return events, boxes
 
 
 def norm_score(pred):
@@ -225,7 +225,7 @@ def voc_ap(rec, prec):
 
 
 def evaluation(pred, gt_path, iou_thresh=0.5):
-    pred = get_preds(pred)
+    pred_events, pred = get_preds(pred)
     norm_score(pred)
     facebox_list, event_list, file_list, hard_gt_list, medium_gt_list, easy_gt_list = get_gt_boxes(gt_path)
     event_num = len(event_list)
@@ -243,6 +243,10 @@ def evaluation(pred, gt_path, iou_thresh=0.5):
         for i in pbar:
             pbar.set_description('Processing {}'.format(settings[setting_id]))
             event_name = str(event_list[i][0][0])
+
+            if event_name not in pred_events:
+                continue
+
             img_list = file_list[i][0]
             pred_list = pred[event_name]
             sub_gt_list = gt_list[i][0]
