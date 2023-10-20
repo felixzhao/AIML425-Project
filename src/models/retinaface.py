@@ -10,6 +10,20 @@ from models.net import FPN as FPN
 from models.net import SSH as SSH
 
 
+def set_requires_grad(layers, requires_grad=True):
+        """
+        Set the requires_grad attribute for all parameters in the given layers.
+        
+        Args:
+        - layers (list or nn.Module): A list of layers or a single layer.
+        - requires_grad (bool): Desired state of the parameters' requires_grad attribute.
+        """
+        if not isinstance(layers, list):
+            layers = [layers]
+        
+        for layer in layers:
+            for param in layer.parameters():
+                param.requires_grad = requires_grad
 
 class ClassHead(nn.Module):
     def __init__(self,inchannels=512,num_anchors=3):
@@ -54,7 +68,6 @@ class RetinaFace(nn.Module):
         super(RetinaFace,self).__init__()
         self.phase = phase
         backbone = None
-        is_restnet50 = False
         if cfg['name'] == 'mobilenet0.25':
             backbone = MobileNetV1()
             if cfg['pretrain']:
@@ -69,7 +82,6 @@ class RetinaFace(nn.Module):
         elif cfg['name'] == 'Resnet50':
             import torchvision.models as models
             backbone = models.resnet50(pretrained=cfg['pretrain'])
-            is_restnet50 = True
 
         self.body = _utils.IntermediateLayerGetter(backbone, cfg['return_layers'])
         in_channels_stage2 = cfg['in_channel']
@@ -90,30 +102,13 @@ class RetinaFace(nn.Module):
 
         # Freeze layers if in training phase
         if self.phase == 'train':
-            self.freeze_early_layers(is_restnet50=is_restnet50)
-            self.freeze_ssh_and_fpn()
+            # Freeze all parameters first
+            set_requires_grad(self, requires_grad=False)
 
-
-    def freeze_early_layers(self, is_restnet50 = False):
-        # Freeze early layers of MobileNetV1
-        for param in self.body.stage1.parameters():
-            param.requires_grad = False
-
-        # Freeze early layers of ResNet50 (if used)
-        if is_restnet50:
-            for name, param in self.body.named_parameters():
-                if 'layer1' in name or 'layer2' in name:
-                    param.requires_grad = False
-
-    def freeze_ssh_and_fpn(self):
-        # Freeze SSH layers
-        for ssh in [self.ssh1, self.ssh2, self.ssh3]:
-            for param in ssh.parameters():
-                param.requires_grad = False
-
-        # Freeze FPN layers
-        for param in self.fpn.parameters():
-            param.requires_grad = False
+            # Unfreeze the head layers
+            set_requires_grad(self.ClassHead)
+            set_requires_grad(self.BboxHead)
+            set_requires_grad(self.LandmarkHead)
 
     def _make_class_head(self,fpn_num=3,inchannels=64,anchor_num=2):
         classhead = nn.ModuleList()
