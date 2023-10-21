@@ -46,3 +46,11 @@ Easy   Val AP: 0.8718378144232543
 Medium Val AP: 0.8550682139372879
 Hard   Val AP: 0.7158518395367631
 =================================================
+
+=========== 6 load weights from backbone, Frozen all, but predict & backbone stage 3, trianed by all data =============
+
+==================== Results ====================
+Easy   Val AP: 0.8741827684140853
+Medium Val AP: 0.8564045317188443
+Hard   Val AP: 0.7160046437354752
+=================================================
