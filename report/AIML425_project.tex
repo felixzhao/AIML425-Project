@@ -48,105 +48,44 @@ The method employs a multi-task learning strategy to simultaneously predict vari
 
 \subsection{RetinaFace}
 
-RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture for face detection. While it retains the core principles of RetinaNet, it introduces additional components tailored for face detection, such as:
+RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture tailored for face detection. While it retains the core principles of RetinaNet, it introduces additional components specifically designed for face detection, such as:
 
-\begin{enumerate} 
-\item Context Module
-\item Cascade Multi-task Loss
+\begin{enumerate}
 \item Predicting facial landmarks in addition to face bounding boxes.
-\item Incorporating a mesh decoder for predicting pixel-wise 3D face shapes.
+\item Incorporating a mesh decoder to predict pixel-wise 3D face shapes.
 \end{enumerate}
 
-In essence, while RetinaNet was designed for general object detection, RetinaFace adapts and extends the architecture to cater specifically to the challenges and requirements of face detection.
+In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
 
 \subsection{RetinaNet}
 
-RetinaNet \cite{lin2017focal} is a single-stage object detector that introduced the Focal Loss to address the class imbalance problem inherent in object detection tasks. The name "RetinaNet" is derived from its use of a feature pyramid network (FPN) to detect objects at different scales, similar to the multi-scale processing in the human retina.
+To fully comprehend the intricacies of RetinaFace, it's imperative to first acquaint ourselves with RetinaNet, the foundational architecture upon which RetinaFace is built. 
 
-The architecture and features of RetinaNet are:
+RetinaNet, introduced by \cite{lin2017focal}, is a single-stage object detector that leverages the Focal Loss to tackle the class imbalance challenge inherent in object detection. The nomenclature "RetinaNet" is inspired by its employment of a Feature Pyramid Network (FPN) for multi-scale object detection, reminiscent of the human retina's multi-scale processing.
 
-\begin{enumerate}
-  \item Single-stage vs. Two-stage Detectors:
-  \begin{itemize}
-    \item Before RetinaNet, there were primarily two categories of object detectors: single-stage detectors (like YOLO and SSD) that are fast but less accurate, and two-stage detectors (like Faster R-CNN) that are more accurate but slower.
+Historically, object detectors fell into two primary categories: single-stage detectors, such as YOLO and SSD, which prioritize speed over accuracy, and two-stage detectors like Faster R-CNN, which offer higher accuracy at the cost of speed. RetinaNet bridges this gap, designed as a single-stage detector but aspiring for the accuracy of its two-stage counterparts.
 
-    \item RetinaNet was designed as a single-stage detector but aimed to achieve the accuracy levels of two-stage detectors.
-  \end{itemize}
-  \item Feature Pyramid Network (FPN):
+Central to RetinaNet's architecture is the FPN, which crafts a multi-scale pyramid of feature maps. This is achieved by merging low-resolution, semantically rich features with high-resolution, semantically weaker features through a top-down approach and lateral connections. Such a representation is pivotal for detecting objects of diverse sizes.
 
-  \begin{itemize}
-    \item RetinaNet incorporates the Feature Pyramid Network (FPN) to efficiently detect objects at different scales.
-    \item FPN constructs a multi-scale pyramid of feature maps by combining low-resolution, semantically strong features with high-resolution, semantically weak features using a top-down pathway and lateral connections.
-    \item This multi-scale representation is crucial for detecting objects of varying sizes in images.
-  \end{itemize}
-  \item Focal Loss:
-  \begin{itemize}
-  \item One of the main challenges with single-stage detectors is the class imbalance between foreground (object) and background classes. Since these detectors densely sample possible object locations in an image, there are many more negative samples (background) than positive samples (objects).
-  \item RetinaNet introduced the Focal Loss to address this imbalance. The Focal Loss is designed to down-weight the contribution of easy negatives (background samples that are easily classified as background) and focus more on the hard negatives and positives.
-  \item This dynamic scaling of the loss helps in training the model more effectively on challenging samples.
-\end{itemize}
-  \item Anchor Boxes:
-  \begin{itemize}
-    \item Like many object detectors, RetinaNet uses anchor boxes (pre-defined bounding boxes) at each spatial location in its feature maps to predict object locations.
-    \item Multiple anchor boxes with different scales and aspect ratios are used at each location to cater to objects of different shapes and sizes.
-\end{itemize}
-  \item Classification and Regression Heads:
-  \begin{itemize}
-    \item For each anchor box, RetinaNet has a classification head that determines the object class (or background) and a regression head that refines the bounding box coordinates.
-    \item These heads are shared across all the scales in the FPN, ensuring consistent predictions across different object sizes.
-\end{itemize}
-  \item Backbone Network:
+Addressing the class imbalance between foreground and background classes, especially prevalent in single-stage detectors, RetinaNet introduced the Focal Loss. This loss function dynamically scales, down-weighting easy negatives and emphasizing hard negatives and positives, thus facilitating more effective model training on challenging samples.
 
-  \begin{itemize}
-    \item RetinaNet typically uses a deep convolutional network, like ResNet, as its backbone to extract feature maps from the input image. These feature maps then feed into the FPN.
-  \end{itemize}
-\end{enumerate}
+RetinaNet also utilizes anchor boxes, pre-defined bounding boxes of varied scales and aspect ratios, at each spatial location on its feature maps to predict object positions. For every anchor box, there's a classification head determining the object class and a regression head refining the bounding box coordinates. These heads operate uniformly across all FPN scales, ensuring consistent predictions.
 
-\subsubsection{deeper into Focal Loss}
+Lastly, RetinaNet typically employs a deep convolutional network, such as ResNet, as its backbone for feature extraction from the input image, which subsequently feeds into the FPN.
 
-The Focal Loss is a specialized loss function introduced to address the class imbalance problem in object detection, particularly for single-stage detectors.
+\subsection{Deeper into Focal Loss}
 
-% Motivation
-In object detection, especially with single-stage detectors, there's a significant class imbalance between the background class (no object) and the object classes. This is because detectors densely sample possible object locations in an image, leading to many more negative samples (background) than positive samples (objects).
+The Focal Loss, tailored for addressing class imbalance in object detection, is particularly beneficial for single-stage detectors. In such detectors, the vast disparity between background (no object) and object classes arises due to the dense sampling of potential object locations, resulting in a preponderance of negative samples. The conventional cross-entropy loss, treating all samples uniformly, often allows these abundant easy negatives to dominate, leading to suboptimal models.
 
-Traditional cross-entropy loss treats every sample equally, which means the vast number of easy negative samples can dominate the loss and lead to degenerate models.
-
-% Formulation
-The Focal Loss is designed to down-weight the contribution of easy samples and focus more on the hard samples.
-It is defined as:
+Focal Loss, in contrast, is formulated to diminish the influence of easy samples, emphasizing the harder ones. It's expressed as:
 \[ \text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t) \]
-where:
+where \( p_t \) is the true class probability, \( \alpha_t \) is a balancing factor, and \( \gamma \) is a focusing parameter that modulates the rate of down-weighting easy samples. Notably, with \( \gamma = 0 \), Focal Loss reverts to the standard cross-entropy loss, but as \( \gamma \) escalates, the modulation's impact grows, reducing the loss for easy samples more aggressively.
 
-\begin{itemize}
-    \item \( p_t \) is the probability of the true class.
-    \item \( \alpha_t \) is a balancing factor.
-    \item \( \gamma \) is the focusing parameter that adjusts the rate at which easy samples are down-weighted.
-    \item When \( \gamma = 0 \), Focal Loss is the same as cross-entropy loss. As \( \gamma \) increases, the effect of the modulating factor becomes more pronounced.
-\end{itemize}
+The modulating factor, \( (1 - p_t)^\gamma \), ensures that easy examples experience a diminished loss. As \( \gamma \) augments, this modulation strengthens, causing the loss for easy samples to plummet, allowing the model to concentrate on challenging, misclassified instances.
 
+The balancing factor, \( \alpha_t \), can be adjusted to counterbalance the significance of positive/negative classes, often set inversely proportional to class frequencies, offering an extra layer of mitigation against extreme class imbalances.
 
-\begin{enumerate}
-  \item Effects of the Focusing Parameter \( \gamma \):
-  \begin{itemize}
-    \item The modulating factor \( (1 - p_t)^\gamma \) ensures that easy examples (those with a high value of \( p_t \) for the true class) have a reduced loss.
-    \item As \( \gamma \) increases, the effect of this modulation intensifies, meaning that the loss for easy examples decreases rapidly.
-    \item This allows the model to focus more on hard, misclassified examples.
-\end{itemize}
-  \item Balancing Factor \( \alpha_t \):
-  \begin{itemize}
-    \item \( \alpha_t \) can be set to balance the importance of positive/negative classes. For instance, it can be set inversely proportional to the class frequencies.
-    \item It's an additional factor to handle extreme class imbalance.
-\end{itemize}
-  \item Benefits:
-  \begin{itemize}
-    \item By using the Focal Loss, models are less prone to being overwhelmed by abundant easy negative samples.
-    \item It allows single-stage detectors, like RetinaNet, to achieve state-of-the-art performance by addressing one of the main challenges they face.
-\end{itemize}
-\end{enumerate}
-
-% Conclusion:
-
-The Focal Loss is a pivotal innovation in the realm of object detection. By dynamically scaling the loss based on the true class probability, it ensures that the training process is not dominated by easy-to-classify samples. This focus on challenging samples leads to improved model performance, especially in scenarios with significant class imbalances.
+In essence, the Focal Loss prevents models from being swamped by numerous easy negatives, enabling detectors like RetinaNet to reach top-tier performance by surmounting one of their primary challenges. This dynamic loss scaling, emphasizing challenging samples, has been a transformative innovation in object detection, especially beneficial in contexts with pronounced class imbalances.
 
 \subsection{feature pyramid network (FPN)}
 
