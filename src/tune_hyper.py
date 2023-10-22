@@ -177,12 +177,30 @@ def validate(trained_model_path, hyper_str):
     validate_widerface(trained_model = trained_model_path, save_folder = save_folder)
     avg_ap, aps = eval(pred=save_folder)
 
-    print("==================== Results ====================")
-    print("Easy   Val AP: {}".format(aps[0]))
-    print("Medium Val AP: {}".format(aps[1]))
-    print("Hard   Val AP: {}".format(aps[2]))
-    print("AVG    Val AP: {}".format(avg_ap))
-    print("=================================================")
+    # print("==================== Results ====================")
+    # print("Easy   Val AP: {}".format(aps[0]))
+    # print("Medium Val AP: {}".format(aps[1]))
+    # print("Hard   Val AP: {}".format(aps[2]))
+    # print("AVG    Val AP: {}".format(avg_ap))
+    # print("=================================================")
+
+    # Prepare the results as a string
+    results_str = """
+    ==================== Results ====================
+    Easy   Val AP: {}
+    Medium Val AP: {}
+    Hard   Val AP: {}
+    AVG    Val AP: {}
+    =================================================
+    """.format(aps[0], aps[1], aps[2], avg_ap)
+
+    # Print the results to the console
+    print(results_str)
+
+    # Save the results to a .txt file
+    with open(f'./widerface_evaluate/results_{hyper_str}.txt', 'w') as file:
+        file.write(results_str)
+
     return avg_ap
 
 
@@ -212,11 +230,12 @@ for lr in learning_rates:
     for wd in weight_decays:
         for bs in batch_sizes:
             for mom in momentums:
+                hyper_str = f"{lr}_{wd}_{bs}_{mom}"
+                print(f"{hyper_str}")
+
                 # Initialize model, optimizer, etc.
                 optimizer = optim.SGD(net.parameters(), lr=initial_lr, momentum=momentum, weight_decay=weight_decay)
                 # ... (set up data loaders with the given batch size)
-                
-                hyper_str = f"{learning_rates}_{weight_decays}_{batch_sizes}_{momentums}"
 
                 # Train the model
                 final_weights_path = train(optimizer=optimizer, batch_size=batch_size, hyper_str= hyper_str)
