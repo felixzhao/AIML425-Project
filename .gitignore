@@ -172,7 +172,6 @@ report/*.fdb_latexmk
 report/*.fls
 report/*.gz
 
-*.pdf
 *.out
 
 *.jpg
