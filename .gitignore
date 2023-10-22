@@ -173,5 +173,6 @@ report/*.fls
 report/*.gz
 
 *.out
+*.pdf
 
 *.jpg
