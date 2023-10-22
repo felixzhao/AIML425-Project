@@ -174,8 +174,9 @@ def adjust_learning_rate(optimizer, gamma, epoch, step_index, iteration, epoch_s
 def validate(trained_model_path, hyper_str):
     trained_model_path = trained_model_path
     save_folder = f'./widerface_evaluate/widerface_txt_{hyper_str}/' 
+    ground_truth_folder = f"./widerface_evaluate/ground_truth/"
     validate_widerface(trained_model = trained_model_path, save_folder = save_folder)
-    avg_ap, aps = eval(pred=save_folder)
+    avg_ap, aps = eval(pred=save_folder, gt=ground_truth_folder)
 
     # print("==================== Results ====================")
     # print("Easy   Val AP: {}".format(aps[0]))
