@@ -289,4 +289,4 @@ def eval(
         pred="./widerface_txt/", 
         gt='./ground_truth/'
         ):
-    evaluation(pred, gt)
+    return evaluation(pred, gt)
