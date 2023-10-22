@@ -283,7 +283,7 @@ def evaluation(pred, gt_path, iou_thresh=0.5):
     # print("Hard   Val AP: {}".format(aps[2]))
     # print("=================================================")
 
-    return (sum(ap)/ len(ap)), aps
+    return (sum(aps)/ len(aps)), aps
 
 def eval(
         pred="./widerface_txt/", 
