@@ -129,69 +129,22 @@ This module's integration results in enhanced detection performance, especially 
 The context module refines the multi-scale features furnished by the FPN by aggregating context, offering a dual enhancement. Initially, the FPN delivers multi-scale features, which the context module subsequently refines by integrating broader contextual data. This synergy between the FPN and the context module culminates in a richer feature representation for RetinaFace, making it more resilient and adept at face detection, particularly in demanding scenarios.
 
 In a nutshell, while RetinaFace's FPN provides multi-scale feature representation, the context module further amplifies these features by incorporating contextual information, resulting in a potent face detection mechanism.
-
 \subsection{Cascade Regression}
 
-Cascade regression refers to a series of regression operations performed in a cascaded manner. In the context of object detection (or face detection, in the case of RetinaFace), this often means refining the bounding box predictions in a step-by-step manner. Instead of predicting the final bounding box coordinates in one go, the model makes an initial prediction and then refines it in subsequent steps.
-
-The idea behind cascade regression is that iterative refinement can lead to more accurate and stable bounding box predictions, especially in challenging scenarios.
+Cascade regression in RetinaFace involves a series of regression operations for iterative bounding box refinement. Instead of a one-shot prediction, the model makes an initial bounding box prediction and refines it in subsequent stages. This iterative approach aims to yield more accurate and stable bounding box predictions, especially in challenging scenarios.
 
 \subsection{Multi-task Loss}
 
-The multi-task loss in the RetinaFace paper is designed to handle multiple objectives simultaneously, including face classification, bounding box regression, facial landmark regression, and dense regression.
+RetinaFace's multi-task loss is crafted to manage multiple objectives concurrently, including face classification, bounding box regression, facial landmark regression, and dense regression. The loss function is given by:
 
 \[ L = L_{cls}(p_i, p^*i) + \lambda_1 1{p^i} L*{box}(t_i, t^*i) \]
 \[+ \lambda_2 1{p^i} L*{pts}(l_i, l^*i) + \lambda_3 1{p^i} L*{pixel} \]
 
-Where:
-
-\begin{itemize}
-\item \( 1_{p^*_i} \) is an indicator function that is 1 for positive anchors and 0 otherwise.
-\item \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters.
-\end{itemize}
-
-In the RetinaFace paper, the loss-balancing parameters \( \lambda_1, \lambda_2, \lambda_3 \) are set to 0.25, 0.1, and 0.01, respectively. This means that the model places a higher significance on better box and landmark locations derived from supervision signals.
-
-Now, breakdown this formla.
-
-\begin{enumerate}
-  \item Face Classification Loss (\(L_{cls}\)):
-  \begin{itemize}
-    \item This loss is responsible for determining whether a given anchor is a face or not.
-    \item \( p_i \) is the predicted probability of anchor \( i \) being a face.
-    \item \( p^*_i \) is the ground truth, where it's 1 for a positive anchor (face) and 0 for a negative anchor (non-face).
-    \item The classification loss \( L_{cls} \) uses the softmax loss for binary classes (face/not face).
-  \end{itemize}
-    \item Face Box Regression Loss (\(L_{box}\)):
-    \begin{itemize}
-      \item This loss refines the bounding box coordinates for detected faces.
-      \item \( t_i = \{t_{x}, t_{y}, t_{w}, t_{h}\} \) represents the coordinates of the predicted box.
-      \item \( t^*_i = \{t^{x}, t^{y}, t^*_{w}, t^*_{h}\} \) represents the ground truth box coordinates associated with a positive anchor.
-      \item The regression targets (i.e., center location, width, and height) are normalized, and the loss \( L_{box} \) uses the smooth-L1 loss as defined in the Fast R-CNN paper.
-    \end{itemize}
-    \item Facial Landmark Regression Loss (\(L_{pts}\)):
-    \begin{itemize}
-      \item This loss predicts the locations of five facial landmarks.
-      \item \( l_i = \{l_{x1}, l_{y1}, ..., l_{x5}, l_{y5}\} \) represents the predicted five facial landmarks.
-      \item \( l^*_i = \{l^{x1}, l^{y1}, ..., l^*_{x5}, l^*_{y5}\} \) represents the ground truth landmarks associated with a positive anchor.
-    \item Similar to the box center regression, the facial landmark regression also employs target normalization based on the anchor center.
-    \end{itemize}
-    \item Dense Regression Loss (\(L_{pixel}\)):
-    \begin{itemize}
-      \item This loss is related to the dense regression branch of the model, which is designed to provide dense facial landmarks.
-      \item The specifics of this loss are further detailed in the paper, especially in relation to the mesh decoder.
-    \end{itemize}
-  \end{enumerate}
+Where \( 1_{p^*_i} \) is an indicator function (1 for positive anchors), and \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters. The loss components include face classification (\(L_{cls}\)), bounding box regression (\(L_{box}\)), facial landmark regression (\(L_{pts}\)), and dense regression (\(L_{pixel}\)).
 
 \subsection{Cascade Regression with Multi-task Loss}
 
-\begin{enumerate}
-\item Iterative Bounding Box Refinement: Within the RetinaFace framework, cascade regression is applied to the bounding box regression task. The model first predicts an initial bounding box. This prediction is then refined in subsequent stages, each time getting closer to the ground truth.
-\item Joint Optimization: While the bounding box predictions are being refined through cascade regression, the model still jointly optimizes the other tasks (face classification and landmark localization) using the multi-task loss. This ensures that all tasks benefit from the iterative refinement process.
-\item Improved Accuracy: The combination of cascade regression and multi-task loss means that the model can achieve more accurate bounding box predictions without compromising the performance of the other tasks. The iterative refinement process allows the model to correct any initial inaccuracies in the bounding box predictions, leading to better overall detection performance.
-\end{enumerate}
-
-In essence, by combining cascade regression with a multi-task loss, RetinaFace ensures that the bounding box predictions are iteratively refined, leading to more accurate and stable face detections. This iterative refinement process works in tandem with the other tasks, ensuring that the overall performance of the model is optimized.
+Within RetinaFace, cascade regression refines bounding box predictions iteratively. While refining bounding boxes, the model concurrently optimizes other tasks using the multi-task loss, ensuring all tasks benefit from the iterative refinement. This amalgamation of cascade regression and multi-task loss enables the model to achieve precise bounding box predictions without sacrificing the performance of other tasks. In summary, the combination ensures iterative refinement of bounding box predictions, culminating in enhanced and consistent face detections.
 
 \section{Impact}
 
