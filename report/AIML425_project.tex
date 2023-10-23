@@ -44,46 +44,36 @@ This study aims to shed light on the fine-tuning approach, offering a pathway to
 \section{Content Analysis}
 \label{sec:content}
 
-In paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}, 
-Author introduced an approach which is a  novel pixel-wise face localization method based on a single-stage design call RetinaFace. 
-The method employs a multi-task learning strategy to simultaneously predict various attributes related to a face. 
+In the paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}, the author presents a unique pixel-wise face localization method termed as RetinaFace. This innovative approach adopts a single-stage design and utilizes a multi-task learning strategy. Through this, it can concurrently predict diverse attributes associated with a face. In this section, we delve into the intricate details of the RetinaFace model and provide insights into its functioning.
 
-\subsection{RetinaFace}
+\subsection{RetinaFace Overview}
 
-RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture tailored for face detection. While it retains the core principles of RetinaNet, it introduces additional components specifically designed for face detection, such as:
+Derived from its name, RetinaFace is an adaptation of the RetinaNet architecture, specifically tailored for face detection tasks. It primarily consists of three pivotal components: the Feature Pyramid Network (FPN), the Context Module, and Cascade Regression accompanied by a Multi-task Loss.
 
-\begin{enumerate}
-\item Predicting facial landmarks in addition to face bounding boxes.
-\item Incorporating a mesh decoder to predict pixel-wise 3D face shapes.
-\end{enumerate}
-
-The Fig~\ref{fig:structure} shows the high level network structure of RetinaFace, which from the original paper \cite{deng2020retinaface}.
+The high-level structure of the RetinaFace network is depicted in Fig~\ref{fig:structure}, which has been sourced from the original paper \cite{deng2020retinaface}.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.7\linewidth]{images/network_structure}
-  \caption{RetinaFace Network Structure}
+  \caption{Network structure of RetinaFace.}
   \label{fig:structure}
 \end{figure}
 
-In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
+For the scope of this discussion, our primary emphasis will be on elucidating the face detection prowess of RetinaFace.
 
 \subsection{Feature Pyramid Network (FPN)}
 
-Historically, image pyramids in computer vision processed images at multiple scales to detect objects of varying sizes. Deep convolutional neural networks (CNNs) naturally produce feature maps at diverse resolutions: shallow layers capture high-resolution yet semantically weak features, while deep layers capture semantically rich features at a lower resolution. FPN \cite{lin2017feature} capitalizes on these multi-scale features for enhanced object detection.
+In the annals of computer vision, image pyramids have been quintessential for processing images across multiple scales to detect objects of different sizes. Deep convolutional neural networks (CNNs) inherently generate feature maps at varying resolutions. Specifically, shallow layers yield high-resolution features with weak semantic information, whereas deeper layers present a converse scenario: they offer rich semantic insights but at a compromised spatial resolution. The Feature Pyramid Network (FPN) \cite{lin2017feature} ingeniously taps into these multi-scale features to amplify object detection capabilities.
 
-The FPN architecture comprises:
+Within the architecture of FPN, there exists a \textbf{Bottom-up Pathway}, which is essentially the standard forward pass witnessed in CNNs. As one progresses deeper into this pathway, the semantic richness augments, but there's an accompanying sacrifice in spatial resolution.
 
-\textbf{Bottom-up Pathway:} The standard forward pass in a CNN, where deeper layers offer increased semantic richness at the cost of spatial resolution.
+Contrastingly, the FPN introduces a \textbf{Top-down Pathway} along with \textbf{Lateral Connections}. Here, there's a reversal in the operational flow—spatial resolution is upsampled. While this upsampling is in process, lateral connections, which originate from the bottom-up pathway, are seamlessly integrated. The confluence of these connections and the upsampled features results in a harmonized blend of high-level semantic knowledge and intricate spatial details.
 
-\textbf{Top-down Pathway and Lateral Connections:} FPN introduces a top-down approach, upsampling spatial resolution. During this, lateral connections from the bottom-up pathway are integrated. These connections merge feature maps from the bottom-up pathway with upsampled features, amalgamating high-level semantic details with fine spatial information.
+One of the hallmarks of FPN is its prowess in \textbf{Multi-scale Predictions}. The network leverages the coalesced features across its pyramid structure, ensuring predictions are attuned to a myriad of scales. This equips FPN with a discerning eye, enabling it to adeptly identify objects regardless of their size.
 
-\textbf{Multi-scale Predictions:} Leveraging the unified features across the pyramid, FPN facilitates predictions at varied scales, adeptly detecting objects of diverse sizes.
+The inception of FPN addressed and rectified some inherent limitations of traditional CNNs, particularly the challenges associated with detecting minuscule objects. By marrying the contrasting strengths of low-resolution, semantically charged features with their high-resolution, semantically impoverished counterparts, FPN delivers an enhanced detection spectrum across varying scales. A notable efficiency of FPN is its ability to sculpt a feature pyramid out of a single-scale input image, which accentuates computational efficiency.
 
-\textbf{Benefits:} FPN ameliorates traditional CNN limitations, especially in detecting smaller objects. By fusing low-resolution, semantically potent features with high-resolution, semantically weaker ones, detection across scales is enhanced. Furthermore, FPN constructs a feature pyramid from a single-scale image, optimizing computational efficiency.
-
-\textbf{Usage in Modern Architectures:} Serving as a cornerstone in many cutting-edge object detection architectures, including RetinaNet, FPN's multi-scale feature representations bolster a detector's capability to identify objects across sizes.
-
+Given its prowess and innovations, it's no surprise that FPN has found itself embedded as a foundational component in numerous state-of-the-art object detection architectures, including RetinaNet. Its innate ability to represent features across scales supercharges a detector's proficiency in recognizing objects spanning different sizes.
 
 \begin{figure}[h]
   \centering
@@ -92,10 +82,12 @@ The FPN architecture comprises:
   \label{fig:fpn}
 \end{figure}
 
-In Fig~\ref{fig:fpn} shows the architecture of Feature Pyramid Network (FPN) which is described from previous works \cite{wang2019carafe}.
+Figure~\ref{fig:fpn} illustrates the architecture of the Feature Pyramid Network (FPN), as delineated in prior works \cite{wang2019carafe}.
 
-In essence, the Feature Pyramid Network (FPN) signifies a monumental stride in object detection, addressing multi-scale object detection challenges. By cohesively integrating multi-scale feature representations, FPN augments both the precision and efficiency of object detectors.
+At its core, the Feature Pyramid Network (FPN) represents a groundbreaking evolution in object detection, 
+adeptly tackling the challenges of multi-scale object detection. 
 
+Through the adept fusion of multi-scale feature representations, FPN not only enhances the accuracy but also the operational efficiency of object detection mechanisms.
 
 \subsubsection{Anchor-based Face Detection on Pyramid Network}
 
@@ -107,8 +99,8 @@ While anchors densely populate the feature map, they don't correspond to every p
 
 Despite not predicting for each pixel, the amalgamation of diverse scales and aspect ratios ensures comprehensive coverage of all potential objects. This dense arrangement, coupled with the anchors' varied dimensions, equips the model to detect faces of multiple sizes and orientations.
 
-In Fig~\ref{fig:anochor_tiling_1} gives a sample to show how is the anchor sampling works in different stride, which comes from previous work \cite{yan2019iou}.
-The Fig~\ref{fig:anochor_tiling_2} shows how is anchors working on feature map level (stage), which is from the previous work \cite{vo2022review}.
+Figure~\ref{fig:anochor_tiling_1} provides a visual representation of how anchor sampling operates at varying strides, drawing upon the insights from prior research \cite{yan2019iou}. 
+Meanwhile, Figure~\ref{fig:anochor_tiling_2} demonstrates the functionality of anchors on the feature map level or stage, as elucidated in the earlier work by \cite{vo2022review}.
 
 \begin{figure}[h]
   \centering
