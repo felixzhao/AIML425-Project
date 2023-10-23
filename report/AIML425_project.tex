@@ -68,36 +68,6 @@ The Fig~\ref{fig:structure} shows the high level network structure of RetinaFace
 
 In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
 
-\subsection{RetinaNet}
-
-To fully comprehend the intricacies of RetinaFace, it's imperative to first acquaint ourselves with RetinaNet, the foundational architecture upon which RetinaFace is built. 
-
-RetinaNet, introduced by \cite{lin2017focal}, is a single-stage object detector that leverages the Focal Loss to tackle the class imbalance challenge inherent in object detection. The nomenclature "RetinaNet" is inspired by its employment of a Feature Pyramid Network (FPN) for multi-scale object detection, reminiscent of the human retina's multi-scale processing.
-
-Historically, object detectors fell into two primary categories: single-stage detectors, such as YOLO and SSD, which prioritize speed over accuracy, and two-stage detectors like Faster R-CNN, which offer higher accuracy at the cost of speed. RetinaNet bridges this gap, designed as a single-stage detector but aspiring for the accuracy of its two-stage counterparts.
-
-Central to RetinaNet's architecture is the FPN, which crafts a multi-scale pyramid of feature maps. This is achieved by merging low-resolution, semantically rich features with high-resolution, semantically weaker features through a top-down approach and lateral connections. Such a representation is pivotal for detecting objects of diverse sizes.
-
-Addressing the class imbalance between foreground and background classes, especially prevalent in single-stage detectors, RetinaNet introduced the Focal Loss. This loss function dynamically scales, down-weighting easy negatives and emphasizing hard negatives and positives, thus facilitating more effective model training on challenging samples.
-
-RetinaNet also utilizes anchor boxes, pre-defined bounding boxes of varied scales and aspect ratios, at each spatial location on its feature maps to predict object positions. For every anchor box, there's a classification head determining the object class and a regression head refining the bounding box coordinates. These heads operate uniformly across all FPN scales, ensuring consistent predictions.
-
-Lastly, RetinaNet typically employs a deep convolutional network, such as ResNet, as its backbone for feature extraction from the input image, which subsequently feeds into the FPN.
-
-\subsubsection{Deeper into Focal Loss}
-
-The Focal Loss, tailored for addressing class imbalance in object detection, is particularly beneficial for single-stage detectors. In such detectors, the vast disparity between background (no object) and object classes arises due to the dense sampling of potential object locations, resulting in a preponderance of negative samples. The conventional cross-entropy loss, treating all samples uniformly, often allows these abundant easy negatives to dominate, leading to suboptimal models.
-
-Focal Loss, in contrast, is formulated to diminish the influence of easy samples, emphasizing the harder ones. It's expressed as:
-\[ \text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t) \]
-where \( p_t \) is the true class probability, \( \alpha_t \) is a balancing factor, and \( \gamma \) is a focusing parameter that modulates the rate of down-weighting easy samples. Notably, with \( \gamma = 0 \), Focal Loss reverts to the standard cross-entropy loss, but as \( \gamma \) escalates, the modulation's impact grows, reducing the loss for easy samples more aggressively.
-
-The modulating factor, \( (1 - p_t)^\gamma \), ensures that easy examples experience a diminished loss. As \( \gamma \) augments, this modulation strengthens, causing the loss for easy samples to plummet, allowing the model to concentrate on challenging, misclassified instances.
-
-The balancing factor, \( \alpha_t \), can be adjusted to counterbalance the significance of positive/negative classes, often set inversely proportional to class frequencies, offering an extra layer of mitigation against extreme class imbalances.
-
-In essence, the Focal Loss prevents models from being swamped by numerous easy negatives, enabling detectors like RetinaNet to reach top-tier performance by surmounting one of their primary challenges. This dynamic loss scaling, emphasizing challenging samples, has been a transformative innovation in object detection, especially beneficial in contexts with pronounced class imbalances.
-
 \subsection{Feature Pyramid Network (FPN)}
 
 Historically, image pyramids in computer vision processed images at multiple scales to detect objects of varying sizes. Deep convolutional neural networks (CNNs) naturally produce feature maps at diverse resolutions: shallow layers capture high-resolution yet semantically weak features, while deep layers capture semantically rich features at a lower resolution. FPN \cite{lin2017feature} capitalizes on these multi-scale features for enhanced object detection.
@@ -127,7 +97,7 @@ In Fig~\ref{fig:fpn} shows the architecture of Feature Pyramid Network (FPN) whi
 In essence, the Feature Pyramid Network (FPN) signifies a monumental stride in object detection, addressing multi-scale object detection challenges. By cohesively integrating multi-scale feature representations, FPN augments both the precision and efficiency of object detectors.
 
 
-\subsection{Anchor-based Face Detection on Pyramid Network}
+\subsubsection{Anchor-based Face Detection on Pyramid Network}
 
 In RetinaFace, anchors are densely arranged across the feature maps of pyramid levels like P2. However, rather than predicting on a pixel-by-pixel basis, anchors correspond to spatial locations on the feature map, with their density governed by the stride of the pyramid level.
 
