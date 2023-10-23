@@ -174,39 +174,6 @@ Real-time face detection's importance, especially in constrained environments, h
 Fine-tuning a pretrained face detection model involves adapting a model that has been trained on a large dataset to a new, typically smaller, dataset. 
 This can be useful when we have a specific dataset or use-case in mind that might differ from the original training data. 
 
-There are three potential approach can be used to fine-tuning the pretrained model,
-which are fine-tuning hypter-parameters, fine-tuning by freeze early layers and fine-tuning with different anchors.
-
-\subsection{Fine-tuning hypter-parameters}
-
-RetinaFace is a prominent facial detection model pretrained on a diverse dataset. Even though it exhibits commendable performance right out of the box, for specific applications or datasets, there might be a need to adjust its hyper-parameters to achieve optimal performance. This section discusses the key hyper-parameters and emphasizes those that need particular attention during the fine-tuning phase.
-
-Among the several hyper-parameters that 
-
-RetinaFace uses, the following are crucial for performance optimization:
-
-\begin{enumerate}
-    \item \textbf{NMS Threshold (nms\_threshold)}: 
-    
-    This parameter represents the Intersection over Union (IoU) threshold. When the IoU of two bounding boxes exceeds this threshold, the bounding box with the lower confidence score is suppressed during the Non-Maximum Suppression (NMS) process. The default value for this threshold is set to 0.4, but it lies within the range [0.0, 1.0]. For some applications, adjusting this threshold can help reduce false positives or improve the recall.
-    
-    \item \textbf{Visualization Threshold (vis\_thres)}: 
-    
-    This is the confidence threshold applied after the NMS process and before the final output. It filters detections based on their confidence scores, allowing only those with scores above this threshold to be part of the final output. Its default value is 0.6, and it can be adjusted between [0.0, 1.0]. Fine-tuning this parameter can help in reducing noise in the final detections.
-\end{enumerate}
-
-The other parameters such as \textit{confidence\_threshold}, \textit{top\_k}, and \textit{keep\_top\_k} are set to their default values of 0.02, 5000, and 750 respectively. 
-
-Their settings generally ensure that the model is sufficiently sensitive (but not overly so) and that a large enough number of top detections are kept both before and after the NMS process.
-
-Fine-tuning these hyper-parameters, 
-
-especially the NMS and visualization thresholds, plays a pivotal role in the model's performance. 
-
-This is because the balance between precision and recall in object detection tasks is sensitive to these values. A lower NMS threshold might result in more bounding boxes being suppressed, leading to fewer false positives but potentially missing some true positives. 
-
-On the other hand, adjusting the visualization threshold can control the quality of detections in the final output. Therefore, by fine-tuning these parameters to suit a specific dataset or application, one can achieve a more desirable balance between precision and recall, ensuring that the model's detections are both accurate and comprehensive.
-
 \subsection{Fine-tuning with Frozen Early Layers}
 
 Fine-tuning pretrained models on novel datasets is a prevalent strategy in deep learning, offering a balance between leveraging pre-existing knowledge and adapting to new data. A common approach during this process is to freeze the early layers of the model, allowing only the deeper layers to be updated. This section delves into the rationale behind this approach and its implications for model performance.
@@ -241,6 +208,10 @@ While the early layers remain fixed, the deeper layers, which are more adaptable
 
 Freezing the early layers during fine-tuning strikes a balance between leveraging pre-existing, generic features and adapting to novel data characteristics. This approach, rooted in the hierarchical nature of feature extraction in deep networks, offers a computationally efficient and effective method for transfer learning across diverse tasks. Future research might explore adaptive freezing strategies, where the decision to freeze or train layers is data-driven, further optimizing the fine-tuning process.
   
+\section{Experiment}
+
+TODO
+
 \section{CONCLUSION}
 \label{sec:conclusion}
 
