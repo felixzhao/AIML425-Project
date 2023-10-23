@@ -206,7 +206,31 @@ Freezing the early layers during fine-tuning strikes a balance between leveragin
   
 \section{Experiment}
 
-TODO
+In this study, our experimental framework is rooted in the repository provided by \cite{biubug6_2020} on GitHub. We align our dataset with the renowned WIDER FACE benchmark \cite{yang2016wider}.
+
+From the WIDER FACE dataset, we extracted three specific categories: ``Voter,'' ``Meeting,'' and ``People Marching'' to curate our specialized data. The initial approach entailed training the base model on the WIDER FACE dataset while consciously excluding these three categories. This model was then fine-tuned using data from only these three categories. We subsequently evaluated the adapted model's efficacy using an evaluation set from the same categories.
+
+During the fine-tuning phase, we variably froze different layers of the model:
+
+\begin{enumerate}
+    \item \textbf{Experiment 1:} All layers were frozen, except for the head layers responsible for prediction.
+    \item \textbf{Experiment 2:} All layers were frozen, excluding the head layers responsible for prediction and the backbone stage 1.
+    \item \textbf{Experiment 3:} All layers were frozen, excluding the head layers responsible for prediction and the backbone stage 3.
+\end{enumerate}
+
+For each of these strategies, a rigorous cycle of hyperparameter optimization was undertaken, fine-tuning parameters like ``learning rates'', ``weight decays'', ``batch sizes'', and ``momentums''.
+
+Upon analysis, the results indicated that Experiment 3 outperformed the other strategies, marking it as the most favorable among the three.
+
+\section{Limitations and Future Works}
+
+Our study faced constraints due to the extensive computational requirements of the fine-tuning, training, and evaluation processes. Given these limitations, we had a restricted opportunity to run our models multiple times, leading to the fine-tuned models not surpassing the base model in performance. As a result, our primary analysis revolves around comparing the outcomes among the modified models rather than against the base model.
+
+Moving forward, there are avenues for potential improvements:
+\begin{itemize}
+    \item We aim to expand our range by experimenting with different layers to freeze and a broader spectrum of hyperparameters.
+    \item Fine-tuning the model using varied anchor configurations presents another promising direction. While our current study didn't delve into this due to time constraints, future endeavors might focus on determining the optimal size and quantity of anchors. Leveraging clustering methodologies to ascertain these anchor configurations and subsequently updating the corresponding code might offer a novel avenue for enhancing the model's performance.
+\end{itemize}
 
 \section{CONCLUSION}
 \label{sec:conclusion}
