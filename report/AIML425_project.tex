@@ -48,16 +48,14 @@ The method employs a multi-task learning strategy to simultaneously predict vari
 
 \subsection{RetinaFace}
 
-RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture for face detection. While it retains the core principles of RetinaNet, it introduces additional components tailored for face detection, such as:
+RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture tailored for face detection. While it retains the core principles of RetinaNet, it introduces additional components specifically designed for face detection, such as:
 
-\begin{enumerate} 
-\item Context Module
-\item Cascade Multi-task Loss
+\begin{enumerate}
 \item Predicting facial landmarks in addition to face bounding boxes.
-\item Incorporating a mesh decoder for predicting pixel-wise 3D face shapes.
+\item Incorporating a mesh decoder to predict pixel-wise 3D face shapes.
 \end{enumerate}
 
-In essence, while RetinaNet was designed for general object detection, RetinaFace adapts and extends the architecture to cater specifically to the challenges and requirements of face detection.
+In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
 
 \subsection{RetinaNet}
 
