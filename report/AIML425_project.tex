@@ -57,6 +57,15 @@ RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet a
 \item Incorporating a mesh decoder to predict pixel-wise 3D face shapes.
 \end{enumerate}
 
+The Fig~\ref{fig:structure} shows the high level network structure of RetinaFace, which from the original paper \cite{deng2020retinaface}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/network_structure}
+  \caption{RetinaFace Network Structure}
+  \label{fig:structure}
+\end{figure}
+
 In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
 
 \subsection{RetinaNet}
@@ -105,6 +114,16 @@ The FPN architecture comprises:
 
 \textbf{Usage in Modern Architectures:} Serving as a cornerstone in many cutting-edge object detection architectures, including RetinaNet, FPN's multi-scale feature representations bolster a detector's capability to identify objects across sizes.
 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/fpn}
+  \caption{Feature Pyramid Network (FPN) architecture}
+  \label{fig:fpn}
+\end{figure}
+
+In Fig~\ref{fig:fpn} shows the architecture of Feature Pyramid Network (FPN) which is described from previous works \cite{wang2019carafe}.
+
 In essence, the Feature Pyramid Network (FPN) signifies a monumental stride in object detection, addressing multi-scale object detection challenges. By cohesively integrating multi-scale feature representations, FPN augments both the precision and efficiency of object detectors.
 
 
@@ -117,6 +136,23 @@ Each pyramid level's stride signifies the spatial resolution disparity between t
 While anchors densely populate the feature map, they don't correspond to every pixel of the original image. They relate to the feature map's spatial locations. For instance, with P2's stride of 4, the first set of anchors might center at pixel (2,2) of the original image, with subsequent sets at pixels like (6,2), and so forth.
 
 Despite not predicting for each pixel, the amalgamation of diverse scales and aspect ratios ensures comprehensive coverage of all potential objects. This dense arrangement, coupled with the anchors' varied dimensions, equips the model to detect faces of multiple sizes and orientations.
+
+In Fig~\ref{fig:anochor_tiling_1} gives a sample to show how is the anchor sampling works in different stride, which comes from previous work \cite{yan2019iou}.
+The Fig~\ref{fig:anochor_tiling_2} shows how is anchors working on feature map level (stage), which is from the previous work \cite{vo2022review}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/anochor_tiling_1}
+  \caption{Anchor sampling in different stride}
+  \label{fig:anochor_tiling_1}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/anochor_tiling_2}
+  \caption{Anchor box generator on the feature map with level i. The base anchor box has an area of $2^i$}
+  \label{fig:anochor_tiling_2}
+\end{figure}
 
 In essence, RetinaFace's dense anchor tiling across pyramid feature maps doesn't operate on a strict pixel-by-pixel basis. Predictions are tethered to feature map spatial locations, with the density influenced by the pyramid level's stride.
 
