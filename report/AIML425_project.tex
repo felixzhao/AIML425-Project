@@ -29,315 +29,147 @@
 \section{Introduction}
 \label{sec:intro}
 
-Face Detection is a very popular research topic and have various applications in industry.
-Nerual Network plays key role in this work, lots of Face Detection Nerual Networks has been introduced.
-RetinaFace is one of most populars implementation, which is been introduced in 2019, 
-and be accepted by "Conference on Computer Vision and Pattern Recognition (CVPR)" in 2020.
-In this study, I will show my understanding of this work based on this paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}
-In real world, lots of edge case can not be covered by this pretrained model.
-Retrain whole model cost too much.
-Fine tuning model approach will be introduced in this study.
-
+Face Detection stands at the forefront of research, given its myriad applications across various industries. 
+The advent of Neural Networks has revolutionized this domain, leading to the development of numerous sophisticated face detection algorithms. 
+Among these, RetinaFace has emerged as a notable contender. 
+Introduced in 2019 and subsequently accepted by the esteemed "Conference on Computer Vision and Pattern Recognition (CVPR)" in 2020, 
+RetinaFace has garnered significant attention. 
+This study delves into the intricacies of RetinaFace, 
+drawing insights from the paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}. 
+While the pretrained model of RetinaFace exhibits commendable performance, it's not without its limitations, 
+especially when confronted with real-world edge cases. 
+Retraining the entire model can be resource-intensive, prompting the exploration of fine-tuning as a viable alternative. 
+This study aims to shed light on the fine-tuning approach, offering a pathway to optimize the model for specific applications.
 
 \section{Content Analysis}
 \label{sec:content}
 
-In paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}, 
-Author introduced an approach which is a  novel pixel-wise face localization method based on a single-stage design call RetinaFace. 
-The method employs a multi-task learning strategy to simultaneously predict various attributes related to a face. 
+In the paper "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" \cite{deng2020retinaface}, the author presents a unique pixel-wise face localization method termed as RetinaFace. This innovative approach adopts a single-stage design and utilizes a multi-task learning strategy. Through this, it can concurrently predict diverse attributes associated with a face. In this section, we delve into the intricate details of the RetinaFace model and provide insights into its functioning.
 
-\subsection{RetinaFace}
+\subsection{RetinaFace Overview}
 
-RetinaFace, as the name suggests, is a specialized adaptation of the RetinaNet architecture tailored for face detection. While it retains the core principles of RetinaNet, it introduces additional components specifically designed for face detection, such as:
+Derived from its name, RetinaFace is an adaptation of the RetinaNet architecture, specifically tailored for face detection tasks. It primarily consists of three pivotal components: the Feature Pyramid Network (FPN), the Context Module, and Cascade Regression accompanied by a Multi-task Loss.
 
-\begin{enumerate}
-\item Predicting facial landmarks in addition to face bounding boxes.
-\item Incorporating a mesh decoder to predict pixel-wise 3D face shapes.
-\end{enumerate}
+The high-level structure of the RetinaFace network is depicted in Fig~\ref{fig:structure}, which has been sourced from the original paper \cite{deng2020retinaface}.
 
-In this study, we will focus more on the face detection capabilities of RetinaFace. We aim to delve deeper into its workings and explore how to fine-tune it.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/network_structure}
+  \caption{Network structure of RetinaFace.}
+  \label{fig:structure}
+\end{figure}
 
-\subsection{RetinaNet}
+For the scope of this discussion, our primary emphasis will be on elucidating the face detection prowess of RetinaFace.
 
-RetinaNet \cite{lin2017focal} is a single-stage object detector that introduced the Focal Loss to address the class imbalance problem inherent in object detection tasks. The name "RetinaNet" is derived from its use of a feature pyramid network (FPN) to detect objects at different scales, similar to the multi-scale processing in the human retina.
+\subsection{Feature Pyramid Network (FPN)}
 
-The architecture and features of RetinaNet are:
+In the annals of computer vision, image pyramids have been quintessential for processing images across multiple scales to detect objects of different sizes. Deep convolutional neural networks (CNNs) inherently generate feature maps at varying resolutions. Specifically, shallow layers yield high-resolution features with weak semantic information, whereas deeper layers present a converse scenario: they offer rich semantic insights but at a compromised spatial resolution. The Feature Pyramid Network (FPN) \cite{lin2017feature} ingeniously taps into these multi-scale features to amplify object detection capabilities.
 
-\begin{enumerate}
-  \item Single-stage vs. Two-stage Detectors:
-  \begin{itemize}
-    \item Before RetinaNet, there were primarily two categories of object detectors: single-stage detectors (like YOLO and SSD) that are fast but less accurate, and two-stage detectors (like Faster R-CNN) that are more accurate but slower.
+Within the architecture of FPN, there exists a \textbf{Bottom-up Pathway}, which is essentially the standard forward pass witnessed in CNNs. As one progresses deeper into this pathway, the semantic richness augments, but there's an accompanying sacrifice in spatial resolution.
 
-    \item RetinaNet was designed as a single-stage detector but aimed to achieve the accuracy levels of two-stage detectors.
-  \end{itemize}
-  \item Feature Pyramid Network (FPN):
+Contrastingly, the FPN introduces a \textbf{Top-down Pathway} along with \textbf{Lateral Connections}. Here, there's a reversal in the operational flow—spatial resolution is upsampled. While this upsampling is in process, lateral connections, which originate from the bottom-up pathway, are seamlessly integrated. The confluence of these connections and the upsampled features results in a harmonized blend of high-level semantic knowledge and intricate spatial details.
 
-  \begin{itemize}
-    \item RetinaNet incorporates the Feature Pyramid Network (FPN) to efficiently detect objects at different scales.
-    \item FPN constructs a multi-scale pyramid of feature maps by combining low-resolution, semantically strong features with high-resolution, semantically weak features using a top-down pathway and lateral connections.
-    \item This multi-scale representation is crucial for detecting objects of varying sizes in images.
-  \end{itemize}
-  \item Focal Loss:
-  \begin{itemize}
-  \item One of the main challenges with single-stage detectors is the class imbalance between foreground (object) and background classes. Since these detectors densely sample possible object locations in an image, there are many more negative samples (background) than positive samples (objects).
-  \item RetinaNet introduced the Focal Loss to address this imbalance. The Focal Loss is designed to down-weight the contribution of easy negatives (background samples that are easily classified as background) and focus more on the hard negatives and positives.
-  \item This dynamic scaling of the loss helps in training the model more effectively on challenging samples.
-\end{itemize}
-  \item Anchor Boxes:
-  \begin{itemize}
-    \item Like many object detectors, RetinaNet uses anchor boxes (pre-defined bounding boxes) at each spatial location in its feature maps to predict object locations.
-    \item Multiple anchor boxes with different scales and aspect ratios are used at each location to cater to objects of different shapes and sizes.
-\end{itemize}
-  \item Classification and Regression Heads:
-  \begin{itemize}
-    \item For each anchor box, RetinaNet has a classification head that determines the object class (or background) and a regression head that refines the bounding box coordinates.
-    \item These heads are shared across all the scales in the FPN, ensuring consistent predictions across different object sizes.
-\end{itemize}
-  \item Backbone Network:
+One of the hallmarks of FPN is its prowess in \textbf{Multi-scale Predictions}. The network leverages the coalesced features across its pyramid structure, ensuring predictions are attuned to a myriad of scales. This equips FPN with a discerning eye, enabling it to adeptly identify objects regardless of their size.
 
-  \begin{itemize}
-    \item RetinaNet typically uses a deep convolutional network, like ResNet, as its backbone to extract feature maps from the input image. These feature maps then feed into the FPN.
-  \end{itemize}
-\end{enumerate}
+The inception of FPN addressed and rectified some inherent limitations of traditional CNNs, particularly the challenges associated with detecting minuscule objects. By marrying the contrasting strengths of low-resolution, semantically charged features with their high-resolution, semantically impoverished counterparts, FPN delivers an enhanced detection spectrum across varying scales. A notable efficiency of FPN is its ability to sculpt a feature pyramid out of a single-scale input image, which accentuates computational efficiency.
 
-\subsubsection{deeper into Focal Loss}
+Given its prowess and innovations, it's no surprise that FPN has found itself embedded as a foundational component in numerous state-of-the-art object detection architectures, including RetinaNet. Its innate ability to represent features across scales supercharges a detector's proficiency in recognizing objects spanning different sizes.
 
-The Focal Loss is a specialized loss function introduced to address the class imbalance problem in object detection, particularly for single-stage detectors.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/fpn}
+  \caption{Feature Pyramid Network (FPN) architecture}
+  \label{fig:fpn}
+\end{figure}
 
-% Motivation
-In object detection, especially with single-stage detectors, there's a significant class imbalance between the background class (no object) and the object classes. This is because detectors densely sample possible object locations in an image, leading to many more negative samples (background) than positive samples (objects).
+Figure~\ref{fig:fpn} illustrates the architecture of the Feature Pyramid Network (FPN), as delineated in prior works \cite{wang2019carafe}.
 
-Traditional cross-entropy loss treats every sample equally, which means the vast number of easy negative samples can dominate the loss and lead to degenerate models.
+At its core, the Feature Pyramid Network (FPN) represents a groundbreaking evolution in object detection, 
+adeptly tackling the challenges of multi-scale object detection. 
 
-% Formulation
-The Focal Loss is designed to down-weight the contribution of easy samples and focus more on the hard samples.
-It is defined as:
-\[ \text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t) \]
-where:
+Through the adept fusion of multi-scale feature representations, FPN not only enhances the accuracy but also the operational efficiency of object detection mechanisms.
 
-\begin{itemize}
-    \item \( p_t \) is the probability of the true class.
-    \item \( \alpha_t \) is a balancing factor.
-    \item \( \gamma \) is the focusing parameter that adjusts the rate at which easy samples are down-weighted.
-    \item When \( \gamma = 0 \), Focal Loss is the same as cross-entropy loss. As \( \gamma \) increases, the effect of the modulating factor becomes more pronounced.
-\end{itemize}
+\subsubsection{Anchor-based Face Detection on Pyramid Network}
 
+In RetinaFace, anchors are densely arranged across the feature maps of pyramid levels like P2. However, rather than predicting on a pixel-by-pixel basis, anchors correspond to spatial locations on the feature map, with their density governed by the stride of the pyramid level.
 
-\begin{enumerate}
-  \item Effects of the Focusing Parameter \( \gamma \):
-  \begin{itemize}
-    \item The modulating factor \( (1 - p_t)^\gamma \) ensures that easy examples (those with a high value of \( p_t \) for the true class) have a reduced loss.
-    \item As \( \gamma \) increases, the effect of this modulation intensifies, meaning that the loss for easy examples decreases rapidly.
-    \item This allows the model to focus more on hard, misclassified examples.
-\end{itemize}
-  \item Balancing Factor \( \alpha_t \):
-  \begin{itemize}
-    \item \( \alpha_t \) can be set to balance the importance of positive/negative classes. For instance, it can be set inversely proportional to the class frequencies.
-    \item It's an additional factor to handle extreme class imbalance.
-\end{itemize}
-  \item Benefits:
-  \begin{itemize}
-    \item By using the Focal Loss, models are less prone to being overwhelmed by abundant easy negative samples.
-    \item It allows single-stage detectors, like RetinaNet, to achieve state-of-the-art performance by addressing one of the main challenges they face.
-\end{itemize}
-\end{enumerate}
+Each pyramid level's stride signifies the spatial resolution disparity between the original image and its feature map. For example, a stride of 4 for P2 implies each of its spatial locations corresponds to a 4x4 region in the original image. At each spatial location on a feature map, multiple anchors of varied scales and aspect ratios are positioned. This means that at a specific x,y location on P2, there exist multiple anchors, each differing in size or shape.
 
-% Conclusion:
+While anchors densely populate the feature map, they don't correspond to every pixel of the original image. They relate to the feature map's spatial locations. For instance, with P2's stride of 4, the first set of anchors might center at pixel (2,2) of the original image, with subsequent sets at pixels like (6,2), and so forth.
 
-The Focal Loss is a pivotal innovation in the realm of object detection. By dynamically scaling the loss based on the true class probability, it ensures that the training process is not dominated by easy-to-classify samples. This focus on challenging samples leads to improved model performance, especially in scenarios with significant class imbalances.
+Despite not predicting for each pixel, the amalgamation of diverse scales and aspect ratios ensures comprehensive coverage of all potential objects. This dense arrangement, coupled with the anchors' varied dimensions, equips the model to detect faces of multiple sizes and orientations.
 
-\subsection{feature pyramid network (FPN)}
+Figure~\ref{fig:anochor_tiling_1} provides a visual representation of how anchor sampling operates at varying strides, drawing upon the insights from prior research \cite{yan2019iou}. 
+Meanwhile, Figure~\ref{fig:anochor_tiling_2} demonstrates the functionality of anchors on the feature map level or stage, as elucidated in the earlier work by \cite{vo2022review}.
 
-In traditional computer vision, pyramids were used to process images at multiple scales to detect objects of varying sizes.
-Deep convolutional neural networks (CNNs) inherently produce feature maps at different resolutions, with shallow layers capturing high-resolution but semantically weak features and deep layers capturing low-resolution but semantically strong features.
-FPN \cite{lin2017feature} aims to leverage these multi-scale features effectively for object detection.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/anochor_tiling_1}
+  \caption{Anchor sampling in different stride}
+  \label{fig:anochor_tiling_1}
+\end{figure}
 
-It consists of the following parts.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/anochor_tiling_2}
+  \caption{Anchor box generator on the feature map with level i. The base anchor box has an area of $2^i$}
+  \label{fig:anochor_tiling_2}
+\end{figure}
 
-\begin{enumerate}
-  \item Bottom-up Pathway:
-  
-    This is the standard forward pass in a CNN. As you go deeper into the network, the spatial resolution of the feature maps decreases, but the semantic information increases.
-
-  \item Top-down Pathway and Lateral Connections:
-  
-    - FPN introduces a top-down pathway where the spatial resolution is upsampled.
-
-    - During this upsampling, FPN also adds lateral connections from the bottom-up pathway. These lateral connections are feature maps from the same level in the bottom-up pathway, which are merged with the upsampled features.
-    
-    - This merging process combines high-level semantic information from the top-down pathway with detailed spatial information from the bottom-up pathway.
-  
-  \item Multi-scale Predictions:
-    
-    With the combined features at different levels of the pyramid, FPN can make predictions at multiple scales. This allows for the detection of objects of varying sizes with high accuracy.
-
-  \item Benefits:
-  
-    - Improved Detection Across Scales: Traditional CNNs often struggled with detecting small objects because the feature maps in deeper layers, which have strong semantic information, are of low resolution. FPN addresses this by combining low-resolution, semantically strong features with high-resolution, semantically weak features.
-
-    - Efficiency: Instead of processing the image at multiple scales separately, FPN efficiently constructs a feature pyramid from a single-scale image, reducing computational overhead.
-
-  \item Usage in Modern Architectures:
-  
-    FPN has become a foundational component in many state-of-the-art object detection architectures, including RetinaNet. By providing multi-scale feature representations, it enhances the detector's ability to recognize objects of various sizes.
-
-\end{enumerate}
-
-Feature Pyramid Network (FPN) is a pivotal advancement in object detection, addressing the challenge of detecting objects across different scales. By integrating multi-scale feature representations in a unified architecture, FPN enhances both the accuracy and efficiency of object detectors.
-
-
-\subsection{Anchor based Face Deteciton on pyramid network}
-
-In RetinaFace, the anchors are indeed densely tiled across the feature maps of each pyramid level, such as P2. However, the anchors don't predict for every single pixel in the sense of moving pixel by pixel. Instead, they are associated with the spatial locations on the feature map, and their density is determined by the stride of that particular pyramid level.
-
-Let's break this down:
-
-\begin{enumerate}
-  \item Stride: Each pyramid level has an associated stride, which indicates the spatial resolution difference between the original image and the feature map at that level. For instance, if P2 has a stride of 4, it means each spatial location in the P2 feature map corresponds to a 4x4 region in the original image.
-  \item Anchor Tiling: For each spatial location on a feature map (e.g., P2), multiple anchors of different scales and aspect ratios are tiled. So, if you're at a specific x,y location on P2, there will be multiple anchors centered at that location, each with a different size or shape.
-  \item Dense Sampling: While the anchors are densely sampled, they aren't associated with every pixel of the original image. Instead, they are associated with the spatial locations of the feature map. Using the P2 example with a stride of 4: for the first spatial location (top-left), the anchors might be centered at pixel (2,2) of the original image (assuming the anchor's center is at the middle of the 4x4 region). The next set of anchors on P2 would be centered at pixel (6,2), and so on.
-  \item Coverage: Even though the anchors aren't predicting for every single pixel, the combination of multiple scales and aspect ratios ensures that they can potentially cover all objects (faces, in the case of RetinaFace) in the image. The dense tiling, combined with the varying sizes and shapes of the anchors, allows the model to detect faces of different sizes and orientations.
-\end{enumerate}
-In summary, while RetinaFace does densely tile anchors across the feature maps of each pyramid level, it doesn't predict for every pixel in a pixel-by-pixel manner. Instead, the predictions are made for spatial locations on the feature map, with the density determined by the stride of the pyramid level.
+In essence, RetinaFace's dense anchor tiling across pyramid feature maps doesn't operate on a strict pixel-by-pixel basis. Predictions are tethered to feature map spatial locations, with the density influenced by the pyramid level's stride.
 
 \subsection{Context Module in RetinaFace}
 
-The "context module" is a significant component of the RetinaFace architecture.
+The context module stands as a pivotal component within the RetinaFace architecture, designed to harness contextual information across various feature levels. Multi-level feature fusion, prevalent in many face detection architectures, is employed to cater to faces of diverse sizes and contexts. By aggregating context from different scales, the context module bolsters the feature representation, proving invaluable for detecting small faces or those in challenging scenarios where context offers crucial insights.
 
-The context module in RetinaFace is designed to capture contextual information from different feature levels. In many face detection architectures, multi-level feature fusion is a common strategy to handle faces of various sizes and in different scenarios. The context module in RetinaFace aims to enhance the feature representation by aggregating context from different scales.
-
-\begin{enumerate}
-  \item Multi-level Feature Aggregation: The context module takes features from different levels of the network. These features come from various resolutions, capturing both high-level and low-level details.
-  \item Feature Enhancement: By aggregating these multi-level features, the context module can enhance the representation of each feature level. This is particularly useful for detecting small faces or faces in challenging scenarios where contextual information can provide additional clues.
-  \item Improved Detection Performance: The inclusion of the context module in RetinaFace helps in achieving better detection performance, especially in scenarios where faces are partially occluded, are of varying sizes, or are in challenging lighting conditions.
-\end{enumerate}
-
-In essence, the context module serves as a mechanism to integrate and leverage information from different scales, enhancing the robustness and accuracy of the RetinaFace detector in diverse real-world scenarios.
+This module's integration results in enhanced detection performance, especially in situations with partial occlusions, varying face sizes, or challenging lighting. Essentially, the context module acts as a conduit to assimilate and capitalize on information from different scales, fortifying the RetinaFace detector's precision and robustness across varied real-world settings.
 
 \subsubsection{How Context Module works with FPN}
 
-\begin{enumerate}
-  \item Feature Aggregation: The context module takes the multi-scale features provided by the FPN and further refines them by aggregating context. This can be thought of as a two-step enhancement: first, the FPN provides features at multiple scales, and then the context module refines these features by considering broader contextual information.
-  \item Improved Detection: By combining the strengths of FPN and the context module, RetinaFace achieves a richer feature representation. This enhanced representation is more robust and versatile, allowing the model to detect faces with higher accuracy, especially in challenging scenarios.
-\end{enumerate}
+The context module refines the multi-scale features furnished by the FPN by aggregating context, offering a dual enhancement. Initially, the FPN delivers multi-scale features, which the context module subsequently refines by integrating broader contextual data. This synergy between the FPN and the context module culminates in a richer feature representation for RetinaFace, making it more resilient and adept at face detection, particularly in demanding scenarios.
 
-In summary, while the FPN in RetinaFace provides a multi-scale feature representation, the context module further refines these features by aggregating contextual information. The combination of these two components results in a powerful and robust face detection mechanism.
+In a nutshell, while RetinaFace's FPN provides multi-scale feature representation, the context module further amplifies these features by incorporating contextual information, resulting in a potent face detection mechanism.
 
+\subsection{Cascade Regression with Multi-task Loss}
 
-\subsection{Cascade Regression}
+Within RetinaFace, cascade regression refines bounding box predictions iteratively. While refining bounding boxes, the model concurrently optimizes other tasks using the multi-task loss, ensuring all tasks benefit from the iterative refinement. This amalgamation of cascade regression and multi-task loss enables the model to achieve precise bounding box predictions without sacrificing the performance of other tasks. In summary, the combination ensures iterative refinement of bounding box predictions, culminating in enhanced and consistent face detections.
 
-Cascade regression refers to a series of regression operations performed in a cascaded manner. In the context of object detection (or face detection, in the case of RetinaFace), this often means refining the bounding box predictions in a step-by-step manner. Instead of predicting the final bounding box coordinates in one go, the model makes an initial prediction and then refines it in subsequent steps.
+\subsubsection{Cascade Regression}
 
-The idea behind cascade regression is that iterative refinement can lead to more accurate and stable bounding box predictions, especially in challenging scenarios.
+Cascade regression in RetinaFace involves a series of regression operations for iterative bounding box refinement. Instead of a one-shot prediction, the model makes an initial bounding box prediction and refines it in subsequent stages. This iterative approach aims to yield more accurate and stable bounding box predictions, especially in challenging scenarios.
 
-\subsection{Multi-task Loss}
+\subsubsection{Multi-task Loss}
 
-The multi-task loss in the RetinaFace paper is designed to handle multiple objectives simultaneously, including face classification, bounding box regression, facial landmark regression, and dense regression.
+RetinaFace's multi-task loss is crafted to manage multiple objectives concurrently, including face classification, bounding box regression, facial landmark regression, and dense regression. The loss function is given by:
 
 \[ L = L_{cls}(p_i, p^*i) + \lambda_1 1{p^i} L*{box}(t_i, t^*i) \]
 \[+ \lambda_2 1{p^i} L*{pts}(l_i, l^*i) + \lambda_3 1{p^i} L*{pixel} \]
 
-Where:
+Where \( 1_{p^*_i} \) is an indicator function (1 for positive anchors), and \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters. The loss components include face classification (\(L_{cls}\)), bounding box regression (\(L_{box}\)), facial landmark regression (\(L_{pts}\)), and dense regression (\(L_{pixel}\)).
 
-\begin{itemize}
-\item \( 1_{p^*_i} \) is an indicator function that is 1 for positive anchors and 0 otherwise.
-\item \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters.
-\end{itemize}
-
-In the RetinaFace paper, the loss-balancing parameters \( \lambda_1, \lambda_2, \lambda_3 \) are set to 0.25, 0.1, and 0.01, respectively. This means that the model places a higher significance on better box and landmark locations derived from supervision signals.
-
-Now, breakdown this formla.
-
-\begin{enumerate}
-  \item Face Classification Loss (\(L_{cls}\)):
-  \begin{itemize}
-    \item This loss is responsible for determining whether a given anchor is a face or not.
-    \item \( p_i \) is the predicted probability of anchor \( i \) being a face.
-    \item \( p^*_i \) is the ground truth, where it's 1 for a positive anchor (face) and 0 for a negative anchor (non-face).
-    \item The classification loss \( L_{cls} \) uses the softmax loss for binary classes (face/not face).
-  \end{itemize}
-    \item Face Box Regression Loss (\(L_{box}\)):
-    \begin{itemize}
-      \item This loss refines the bounding box coordinates for detected faces.
-      \item \( t_i = \{t_{x}, t_{y}, t_{w}, t_{h}\} \) represents the coordinates of the predicted box.
-      \item \( t^*_i = \{t^{x}, t^{y}, t^*_{w}, t^*_{h}\} \) represents the ground truth box coordinates associated with a positive anchor.
-      \item The regression targets (i.e., center location, width, and height) are normalized, and the loss \( L_{box} \) uses the smooth-L1 loss as defined in the Fast R-CNN paper.
-    \end{itemize}
-    \item Facial Landmark Regression Loss (\(L_{pts}\)):
-    \begin{itemize}
-      \item This loss predicts the locations of five facial landmarks.
-      \item \( l_i = \{l_{x1}, l_{y1}, ..., l_{x5}, l_{y5}\} \) represents the predicted five facial landmarks.
-      \item \( l^*_i = \{l^{x1}, l^{y1}, ..., l^*_{x5}, l^*_{y5}\} \) represents the ground truth landmarks associated with a positive anchor.
-    \item Similar to the box center regression, the facial landmark regression also employs target normalization based on the anchor center.
-    \end{itemize}
-    \item Dense Regression Loss (\(L_{pixel}\)):
-    \begin{itemize}
-      \item This loss is related to the dense regression branch of the model, which is designed to provide dense facial landmarks.
-      \item The specifics of this loss are further detailed in the paper, especially in relation to the mesh decoder.
-    \end{itemize}
-  \end{enumerate}
-
-\subsection{Cascade Regression with Multi-task Loss}
-
-\begin{enumerate}
-\item Iterative Bounding Box Refinement: Within the RetinaFace framework, cascade regression is applied to the bounding box regression task. The model first predicts an initial bounding box. This prediction is then refined in subsequent stages, each time getting closer to the ground truth.
-\item Joint Optimization: While the bounding box predictions are being refined through cascade regression, the model still jointly optimizes the other tasks (face classification and landmark localization) using the multi-task loss. This ensures that all tasks benefit from the iterative refinement process.
-\item Improved Accuracy: The combination of cascade regression and multi-task loss means that the model can achieve more accurate bounding box predictions without compromising the performance of the other tasks. The iterative refinement process allows the model to correct any initial inaccuracies in the bounding box predictions, leading to better overall detection performance.
-\end{enumerate}
-
-In essence, by combining cascade regression with a multi-task loss, RetinaFace ensures that the bounding box predictions are iteratively refined, leading to more accurate and stable face detections. This iterative refinement process works in tandem with the other tasks, ensuring that the overall performance of the model is optimized.
 
 \section{Impact}
 
-The "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" paper has significantly influenced the domain of face detection. Its contributions have paved the way for a plethora of subsequent research endeavors. This section delves into the multifaceted impact of RetinaFace on the research community.
+The publication "RetinaFace: Single-shot Multi-level Face Localisation in the Wild" has left an indelible mark on face detection research, catalyzing numerous subsequent investigations.
 
 \subsection{Improving the Architecture}
-The foundational architecture of RetinaFace has not only been influential in human face detection but has also been adapted for other species. A remarkable adaptation is presented by \cite{xu2022cattlefacenet}, titled "CattleFaceNet: A cattle face identification approach based on RetinaFace and ArcFace loss." This research innovatively leverages the strengths of RetinaFace for cattle face identification, integrating it with the ArcFace loss to enhance recognition accuracy. Such adaptations underscore the versatility of the RetinaFace model and its potential to serve as a base for diverse identification tasks.
+RetinaFace's architecture, while pivotal in human face detection, has seen adaptations for other species. For instance, \cite{xu2022cattlefacenet} introduced "CattleFaceNet: A cattle face identification approach based on RetinaFace and ArcFace loss," which melds RetinaFace's strengths with the ArcFace loss for enhanced cattle face recognition. Such innovative applications highlight the model's versatility across varied identification challenges.
 
 \subsection{Adapting to Different Domains}
-The adaptability of RetinaFace is showcased by its application in various unique scenarios beyond traditional face detection. A significant example is the study by \cite{aswal2020single}, titled "Single Camera Masked Face Identification." This research emphasizes the challenges and nuances of identifying faces when obscured by masks, a scenario that has become increasingly relevant in recent times. It demonstrates the flexibility of the RetinaFace model to cater to domain-specific challenges and its potential to address contemporary issues.
+RetinaFace's adaptability shines in its applications across diverse scenarios. A pertinent example is \cite{aswal2020single}'s "Single Camera Masked Face Identification," addressing the complexities of identifying mask-obscured faces, a contemporary challenge. This underscores RetinaFace's ability to navigate domain-specific intricacies.
 
 \subsection{Optimization for Real-time Applications}
-The need for real-time face detection, especially in resource-constrained environments, has driven researchers to optimize RetinaFace for speed and efficiency. A notable contribution in this domain is the work by \cite{putro2022faster}, titled "A Faster Real-time Face Detector Support Smart Digital Advertising on Low-cost Computing Device." This research underscores the importance of efficient face detection in the realm of digital advertising, particularly on low-cost computing devices, further emphasizing the adaptability and potential of the RetinaFace model for real-world applications.
+Real-time face detection's importance, especially in constrained environments, has led to RetinaFace's optimization endeavors. \cite{putro2022faster}'s "A Faster Real-time Face Detector Support Smart Digital Advertising on Low-cost Computing Device" accentuates the model's significance in digital advertising on budget devices, underscoring its real-world applicability.
+
+\subsection{Open-source Availability}
+
+The generous decision by the authors to open-source both their code and models has had profound repercussions in the wider research landscape. By granting unrestricted access to their pioneering work, they inadvertently expedited the adoption rate and catalyzed a spate of research endeavors stemming from their foundational model.
+
+This open-source ethos has not only democratized research access but also nurtured a spirit of collaboration within the research community. Researchers, both seasoned and nascent, have been able to dissect, understand, and build upon RetinaFace's intricacies. Consequently, this has led to the emergence of improved iterations, diverse applications, and enriched adaptations of the model. Such a communal approach has substantially bridged knowledge gaps and expedited advancements in face detection research.
 
 \section{Fine tuning pretrained model}
 
-Fine-tuning a pretrained face detection model involves adapting a model that has been trained on a large dataset to a new, typically smaller, dataset. 
-This can be useful when we have a specific dataset or use-case in mind that might differ from the original training data. 
-
-There are three potential approach can be used to fine-tuning the pretrained model,
-which are fine-tuning hypter-parameters, fine-tuning by freeze early layers and fine-tuning with different anchors.
-
-\subsection{Fine-tuning hypter-parameters}
-
-RetinaFace is a prominent facial detection model pretrained on a diverse dataset. Even though it exhibits commendable performance right out of the box, for specific applications or datasets, there might be a need to adjust its hyper-parameters to achieve optimal performance. This section discusses the key hyper-parameters and emphasizes those that need particular attention during the fine-tuning phase.
-
-Among the several hyper-parameters that 
-
-RetinaFace uses, the following are crucial for performance optimization:
-
-\begin{enumerate}
-    \item \textbf{NMS Threshold (nms\_threshold)}: 
-    
-    This parameter represents the Intersection over Union (IoU) threshold. When the IoU of two bounding boxes exceeds this threshold, the bounding box with the lower confidence score is suppressed during the Non-Maximum Suppression (NMS) process. The default value for this threshold is set to 0.4, but it lies within the range [0.0, 1.0]. For some applications, adjusting this threshold can help reduce false positives or improve the recall.
-    
-    \item \textbf{Visualization Threshold (vis\_thres)}: 
-    
-    This is the confidence threshold applied after the NMS process and before the final output. It filters detections based on their confidence scores, allowing only those with scores above this threshold to be part of the final output. Its default value is 0.6, and it can be adjusted between [0.0, 1.0]. Fine-tuning this parameter can help in reducing noise in the final detections.
-\end{enumerate}
-
-The other parameters such as \textit{confidence\_threshold}, \textit{top\_k}, and \textit{keep\_top\_k} are set to their default values of 0.02, 5000, and 750 respectively. 
-
-Their settings generally ensure that the model is sufficiently sensitive (but not overly so) and that a large enough number of top detections are kept both before and after the NMS process.
-
-Fine-tuning these hyper-parameters, 
-
-especially the NMS and visualization thresholds, plays a pivotal role in the model's performance. 
-
-This is because the balance between precision and recall in object detection tasks is sensitive to these values. A lower NMS threshold might result in more bounding boxes being suppressed, leading to fewer false positives but potentially missing some true positives. 
-
-On the other hand, adjusting the visualization threshold can control the quality of detections in the final output. Therefore, by fine-tuning these parameters to suit a specific dataset or application, one can achieve a more desirable balance between precision and recall, ensuring that the model's detections are both accurate and comprehensive.
-
+Fine-tuning a pretrained face detection model entails tailoring a model—originally trained on a vast dataset—to accommodate a newer, often smaller, dataset. This approach becomes invaluable when confronted with a specialized dataset or application that deviates from the initial training context. In real-world scenarios, a pretrained model may struggle to encompass all possible environments. Challenges such as varied camera angles or distinct environmental conditions, like fog, further underscore the necessity for such fine-tuning.
 \subsection{Fine-tuning with Frozen Early Layers}
 
 Fine-tuning pretrained models on novel datasets is a prevalent strategy in deep learning, offering a balance between leveraging pre-existing knowledge and adapting to new data. A common approach during this process is to freeze the early layers of the model, allowing only the deeper layers to be updated. This section delves into the rationale behind this approach and its implications for model performance.
@@ -371,62 +203,53 @@ While the early layers remain fixed, the deeper layers, which are more adaptable
 \end{enumerate}
 
 Freezing the early layers during fine-tuning strikes a balance between leveraging pre-existing, generic features and adapting to novel data characteristics. This approach, rooted in the hierarchical nature of feature extraction in deep networks, offers a computationally efficient and effective method for transfer learning across diverse tasks. Future research might explore adaptive freezing strategies, where the decision to freeze or train layers is data-driven, further optimizing the fine-tuning process.
-
-
-\subsection{Fine-tuning with different anchors}
-
-Face detection models often rely on predefined bounding boxes, known as anchors, to predict the location of faces in an image. The accuracy of these models can be significantly influenced by the choice of these anchors, especially when dealing with diverse face sizes and orientations. In this section, we delve into the methodology and impact of fine-tuning our model with different anchor configurations.
-
-\subsubsection{Anchor Analysis and Selection}
-
-Before embarking on the fine-tuning process, it's paramount to understand the distribution of face sizes and aspect ratios in the dataset. This preliminary analysis provides insights into potential anchor sizes and ratios that might be most effective.
-
-To determine the optimal sizes for our anchors, we employed k-means clustering on the ground truth bounding boxes. The centroids of these clusters provided a representative set of widths and heights for our anchors. While the number of anchors is often set between 5 and 9 in many applications, 
-our dataset's unique characteristics led us to choose \textit{TODO:X} anchors (where \textit{TODO:X} is the number you decided on).
-
-\subsubsection{Anchor Ratios and Scaling}
-
-Beyond mere size, the aspect ratio of anchors plays a pivotal role in accurately capturing the variability of faces in images. Common ratios, such as 1:1, 1:2, and 2:1, were considered based on the dataset's distribution.
-
-Due to FPN has been used in RetinaFace models that utilize multiple feature maps to detect objects at varying scales.
-following the implementation in RetinaFace we use same number anchors for feature maps.
-
-\subsubsection{Training and Results}
-
-With the newly determined anchors, the model was trained and its performance closely monitored. 
-
-Preliminary results indicated a \textit{TODO:Y}\% improvement in accuracy (where \textit{TODO:Y} is the improvement percentage you observed). However, it's worth noting that while anchor fine-tuning can enhance performance, it's just one facet of the optimization process. Factors like data augmentation, model architecture, and loss functions also significantly influence the model's efficacy.
-
-\subsubsection{Conclusion}
-
-Fine-tuning with different anchors offers a promising avenue for enhancing face detection models. By tailoring the anchors to the specific characteristics of the dataset, we can achieve more accurate and robust face detections. Future work might explore the iterative refinement of anchors and delve deeper into the interplay between anchor configurations and other model hyperparameters.
-
-
-\section{RESULTS}
-\label{sec:results}
-
-\subsection{Data Preparation}
-\label{ssec:data}
-
-
-  \subsection{Model Fine Tuning and evaluation}
-  \label{ssec:model}
-
-\section{Impact}
   
+\section{Experiment}
+
+In this study, our experimental framework is rooted in the repository provided by \cite{biubug6_2020} on GitHub. We align our dataset with the renowned WIDER FACE benchmark \cite{yang2016wider}.
+
+From the WIDER FACE dataset, we extracted three specific categories: ``Voter,'' ``Meeting,'' and ``People Marching'' to curate our specialized data. The initial approach entailed training the base model on the WIDER FACE dataset while consciously excluding these three categories. This model was then fine-tuned using data from only these three categories. We subsequently evaluated the adapted model's efficacy using an evaluation set from the same categories.
+
+During the fine-tuning phase, we variably froze different layers of the model:
+
+\begin{enumerate}
+    \item \textbf{Experiment 1:} All layers were frozen, except for the head layers responsible for prediction.
+    \item \textbf{Experiment 2:} All layers were frozen, excluding the head layers responsible for prediction and the backbone stage 1.
+    \item \textbf{Experiment 3:} All layers were frozen, excluding the head layers responsible for prediction and the backbone stage 3.
+\end{enumerate}
+
+For each of these strategies, a rigorous cycle of hyperparameter optimization was undertaken, fine-tuning parameters like ``learning rates'', ``weight decays'', ``batch sizes'', and ``momentums''.
+
+Upon analysis, the results indicated that Experiment 3 outperformed the other strategies, marking it as the most favorable among the three.
+
+\section{Limitations and Future Works}
+
+Our study faced constraints due to the extensive computational requirements of the fine-tuning, training, and evaluation processes. Given these limitations, we had a restricted opportunity to run our models multiple times, leading to the fine-tuned models not surpassing the base model in performance. As a result, our primary analysis revolves around comparing the outcomes among the modified models rather than against the base model.
+
+Moving forward, there are avenues for potential improvements:
+\begin{itemize}
+    \item We aim to expand our range by experimenting with different layers to freeze and a broader spectrum of hyperparameters.
+    \item Fine-tuning the model using varied anchor configurations presents another promising direction. While our current study didn't delve into this due to time constraints, future endeavors might focus on determining the optimal size and quantity of anchors. Leveraging clustering methodologies to ascertain these anchor configurations and subsequently updating the corresponding code might offer a novel avenue for enhancing the model's performance.
+\end{itemize}
+
 \section{CONCLUSION}
 \label{sec:conclusion}
+
+RetinaFace, an adaptation of the foundational RetinaNet architecture, has ushered in a new era of face detection. By leveraging the strengths of the Feature Pyramid Network (FPN) and integrating specialized components like the context module, RetinaFace offers a robust solution for detecting faces in diverse scenarios. The model's adaptability is further highlighted by its applications across various domains, from cattle identification to contemporary challenges like masked face detection.
+
+Moreover, the potential for fine-tuning, whether through hyper-parameter adjustments or freezing early layers, allows RetinaFace to be tailored to specific datasets or applications. This balance between leveraging pre-existing knowledge and adapting to new data nuances underscores the model's versatility.
+
+In essence, RetinaFace stands as a significant advancement in face detection, combining speed with accuracy. As the field continues to evolve, models like RetinaFace will undoubtedly serve as benchmarks, guiding future innovations in object detection.
 
 
 \section{STATEMENT OF ALL TOOLS USED}
 \label{sec:statementofalltoolsused}
 
-% In this work, we used Pytorch geometric package to generate data, create, train models. 
-% The Plotly package helped us visualize in 3D. 
+In this study, the primary tool employed is \texttt{PyTorch}.
 
-Source codes are published in github: 
-% $\href{}{URL}$
-
+The source code associated with this project has been published on GitHub for public access. 
+Interested readers can find the repository at the following link: \href{https://github.com/felixzhao/AIML425-Project}{GitHub Repository}. 
+For detailed code contributions, please refer to the \texttt{README} within the repository.
 
 
 
