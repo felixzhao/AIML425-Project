@@ -10,6 +10,20 @@ from models.net import FPN as FPN
 from models.net import SSH as SSH
 
 
+def set_requires_grad(layers, requires_grad=True):
+        """
+        Set the requires_grad attribute for all parameters in the given layers.
+        
+        Args:
+        - layers (list or nn.Module): A list of layers or a single layer.
+        - requires_grad (bool): Desired state of the parameters' requires_grad attribute.
+        """
+        if not isinstance(layers, list):
+            layers = [layers]
+        
+        for layer in layers:
+            for param in layer.parameters():
+                param.requires_grad = requires_grad
 
 class ClassHead(nn.Module):
     def __init__(self,inchannels=512,num_anchors=3):
@@ -85,6 +99,24 @@ class RetinaFace(nn.Module):
         self.ClassHead = self._make_class_head(fpn_num=3, inchannels=cfg['out_channel'])
         self.BboxHead = self._make_bbox_head(fpn_num=3, inchannels=cfg['out_channel'])
         self.LandmarkHead = self._make_landmark_head(fpn_num=3, inchannels=cfg['out_channel'])
+
+        # Freeze layers if in training phase
+        if self.phase == 'train':
+            # Freeze all parameters first
+            set_requires_grad(self, requires_grad=False)
+
+            # Unfreeze the head layers
+            set_requires_grad(self.ClassHead)
+            set_requires_grad(self.BboxHead)
+            set_requires_grad(self.LandmarkHead)
+
+            # # Unfreeze MobileNetV1 stage1
+            # if hasattr(self, 'backbone'):
+            #     set_requires_grad(self.backbone.stage1)
+
+            # Unfreeze MobileNetV1 stage3
+            if hasattr(self, 'backbone'):
+                set_requires_grad(self.backbone.stage3)
 
     def _make_class_head(self,fpn_num=3,inchannels=64,anchor_num=2):
         classhead = nn.ModuleList()
