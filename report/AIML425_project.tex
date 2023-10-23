@@ -137,11 +137,16 @@ This module's integration results in enhanced detection performance, especially 
 The context module refines the multi-scale features furnished by the FPN by aggregating context, offering a dual enhancement. Initially, the FPN delivers multi-scale features, which the context module subsequently refines by integrating broader contextual data. This synergy between the FPN and the context module culminates in a richer feature representation for RetinaFace, making it more resilient and adept at face detection, particularly in demanding scenarios.
 
 In a nutshell, while RetinaFace's FPN provides multi-scale feature representation, the context module further amplifies these features by incorporating contextual information, resulting in a potent face detection mechanism.
-\subsection{Cascade Regression}
+
+\subsection{Cascade Regression with Multi-task Loss}
+
+Within RetinaFace, cascade regression refines bounding box predictions iteratively. While refining bounding boxes, the model concurrently optimizes other tasks using the multi-task loss, ensuring all tasks benefit from the iterative refinement. This amalgamation of cascade regression and multi-task loss enables the model to achieve precise bounding box predictions without sacrificing the performance of other tasks. In summary, the combination ensures iterative refinement of bounding box predictions, culminating in enhanced and consistent face detections.
+
+\subsubsection{Cascade Regression}
 
 Cascade regression in RetinaFace involves a series of regression operations for iterative bounding box refinement. Instead of a one-shot prediction, the model makes an initial bounding box prediction and refines it in subsequent stages. This iterative approach aims to yield more accurate and stable bounding box predictions, especially in challenging scenarios.
 
-\subsection{Multi-task Loss}
+\subsubsection{Multi-task Loss}
 
 RetinaFace's multi-task loss is crafted to manage multiple objectives concurrently, including face classification, bounding box regression, facial landmark regression, and dense regression. The loss function is given by:
 
@@ -150,9 +155,6 @@ RetinaFace's multi-task loss is crafted to manage multiple objectives concurrent
 
 Where \( 1_{p^*_i} \) is an indicator function (1 for positive anchors), and \( \lambda_1, \lambda_2, \lambda_3 \) are loss-balancing parameters. The loss components include face classification (\(L_{cls}\)), bounding box regression (\(L_{box}\)), facial landmark regression (\(L_{pts}\)), and dense regression (\(L_{pixel}\)).
 
-\subsection{Cascade Regression with Multi-task Loss}
-
-Within RetinaFace, cascade regression refines bounding box predictions iteratively. While refining bounding boxes, the model concurrently optimizes other tasks using the multi-task loss, ensuring all tasks benefit from the iterative refinement. This amalgamation of cascade regression and multi-task loss enables the model to achieve precise bounding box predictions without sacrificing the performance of other tasks. In summary, the combination ensures iterative refinement of bounding box predictions, culminating in enhanced and consistent face detections.
 
 \section{Impact}
 
